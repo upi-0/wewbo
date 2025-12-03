@@ -24,3 +24,9 @@ type
 
   FormatResolution* = enum
     bad, great, best
+
+# Exceptions
+type
+  AnimeNotFoundError* = object of ValueError
+    message: string
+  EpisodeNotFoundError* = object of CatchableError

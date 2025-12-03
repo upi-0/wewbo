@@ -9,51 +9,67 @@ import ui/[
   controller,
 ]
 import ./options
-import ./extractor/all
+import ./extractor/[all, types]
 import ./player/all
+
+proc setPlayer() : Player =
+  var
+    players = getAvailabePlayer()
+    playerName = optionsParser.get("player").getStr()
+
+  if players.len < 1 :
+    raise newException(ValueError, "There are no Players available on your device")
+  else :
+    if playerName == "" and players.contains("mpv") : playerName = "mpv"
+    else : playerName = "ffplay"
+
+  getPlayer(playerName)    
+
+proc askAnime(ex: BaseExtractor, title: string) : AnimeData {.raises: [AnimeNotFoundError, Exception].} =
+  var listAnime = ex.animes(title)
+  if listAnime.len < 1 :
+    raise newException(AnimeNotFoundError, "No Anime Found")
+  return listAnime.ask()
+
+proc askEpisode(ex: BaseExtractor, ad: AnimeData) : EpisodeData {.raises: [EpisodeNotFoundError, Exception].} =
+  var
+    animeUrl = ex.get(ad)
+    listEpisode = ex.episodes(animeUrl)
+
+  if listEpisode.len < 1 :
+    raise newException(EpisodeNotFoundError, "No Episode Found")
+  return listEpisode.ask()
+
 
 proc main*() =
   var
     anime: AnimeData
-    anime_url: string
     episodes: seq[EpisodeData]
     episode: EpisodeData
     start_idx: int
     playerName: string
+    extractor: BaseExtractor
 
   let
-    players = getAvailabePlayer()
     title = optionsParser.nargs[0]
     extractorName = optionsParser.get("name").getStr()
-    extractor = get_extractor_from_source(extractorName)
-    animes = extractor.animes(title)
+  
+  try :
+    extractor = getExtractor(extractorName)
+    anime = askAnime(extractor, title)
 
-  if players.len < 1 :
-    raise newException(ValueError, "There are no Players available on your device")
+  except AnimeNotFoundError :
+    echo "Linux Rijal KO Gada anjir"
+    extractor = getExtractor("pahe")
+    anime = askAnime(extractor, title)
 
-  if animes.len < 1 :
-    raise newException(ValueError, "No anime found")
-
-  anime = animes.ask(title="Searching for '$#'" % [title])
-  anime_url = extractor.get anime
-  episodes = extractor.episodes anime_url
-
-  if episodes.len < 1 :
-    raise newException(ValueError, "No episode found")
-
-  episode = episodes.ask(title = anime.title)
+  episode = askEpisode(extractor, anime)
   start_idx = episodes.find episode
   playerName = optionsParser.get("player").getStr()
 
-  if playerName == "" and players.contains("mpv") :
-    playerName = "mpv"
-
-  else :
-    playerName = "ffplay"
-
   main_controller_loop(
     extractor,
-    getPlayer(playerName),
+    setPlayer(),
     episodes,
     start_idx
   )  
