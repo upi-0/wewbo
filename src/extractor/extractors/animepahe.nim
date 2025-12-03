@@ -4,6 +4,7 @@ import re
 import xmltree
 import options
 import ../base
+import ../types
 import ../../http/[
   client,
   response
@@ -23,13 +24,16 @@ method sInit*(ex: AnimepaheEX) : InfoExtractor =
 
 method animes*(ex: AnimepaheEX, title: string) : seq[AnimeData] =
   var res_json = ex.connection.req("/api?m=search&q=" & title).to_json()
-  for anime in res_json["data"] :
-    result.add AnimeData(
-      title: anime["title"].getStr(),
-      url: ex.connection.normalize_url(
-        "/anime/" & anime["session"].getStr()
+  if res_json.hasKey("data") :
+    for anime in res_json["data"] :
+      result.add AnimeData(
+        title: anime["title"].getStr(),
+        url: ex.connection.normalize_url(
+          "/anime/" & anime["session"].getStr()
+        )
       )
-    )
+  else : raise newException(AnimeNotFoundError, "Animepahe Gagal jir")      
+
 
 proc get_by_index(ex: AnimepaheEX, session: string, index: int = 1, sort: string = "asc") : tuple[all: JsonNode, total: int] =
   var
