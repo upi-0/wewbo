@@ -16,6 +16,7 @@ method sInit*(ex: KuramanimeEX) : InfoExtractor =
   result.name = "kura"
 
 method animes*(ex: KuramanimeEX, title: string = "") : seq[AnimeData] =
+  ex.info("rijal")
   var
     url: string = "/anime?search=" & title
     que: string = "div.product__item__text h5"
