@@ -16,7 +16,6 @@ import ./player/all
 
 proc setPlayer() : Player =
   var
-    players = getAvailabePlayer()
     playerName = optionsParser.get("player").getStr()
 
   if players.len < 1 :

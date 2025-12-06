@@ -82,7 +82,7 @@ proc main_controller_loop(
 
       of changePlayer :
         var bentar: seq[Questionable]
-        for pler in getAvailabePlayer() :
+        for pler in players :
           bentar.add Questionable(title: pler)
         pler = getPlayer(bentar.ask(title="Select Title").title)
         continue

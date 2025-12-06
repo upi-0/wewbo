@@ -9,7 +9,7 @@ let player: array[2, Player] = [
   MpvPL(name: "mpv")
 ]
 
-proc getAvailabePlayer*() : seq[string] =
+proc getAvailabePlayer() : seq[string] =
   for pler in player :
     if pler.setup().available :
       result.add pler.name
@@ -22,3 +22,5 @@ proc getPlayer*(name: string = "mpv") : Player =
 export
   Player,
   watch
+
+let players* = getAvailabePlayer()  
