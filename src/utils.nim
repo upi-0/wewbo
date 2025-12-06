@@ -48,7 +48,7 @@ func getBetween*(text: string, start: string, endd: string): string =
 
     return smento[0 .. endoo]
 
-  except:
+  except RangeDefect:
     return ""
 
 func forcedGetBetween*(text: string, prefsuf: openArray[array[2,
