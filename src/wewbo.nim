@@ -1,5 +1,6 @@
 import main
 import version
+import logger
 
-echo ver
+log.info(ver)
 main()
