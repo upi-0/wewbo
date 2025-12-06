@@ -71,7 +71,6 @@ proc ask*[T: Questionable](data: seq[T], pageSize: int = terminalHeight() - 9, t
 
     let itemsStartY = topBorderY + 1
     let pageEnd = min(pageStart + itemsPerPage, data.len)
-    let bottomBorderY = itemsPerPage + 1
     
     # Render komponen
     renderTopBorder(tb, topBorderY, title=title)
