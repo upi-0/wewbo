@@ -45,7 +45,6 @@ func isValidSource*(headTitle: string) : bool =
   headTitle.source != OtakuSources.sNone
 
 method animes*(ex: OtakudesuEX, title: string) : seq[AnimeData] =
-  ex.info("rijal")
   var 
     url = "/?s=$#&post_type=anime" % [title]
     els = ex.main_els(url, "h2 a")
