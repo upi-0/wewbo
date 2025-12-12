@@ -1,4 +1,5 @@
 import
+  logger,
   extractor/all,
   ui/ask,
   media/[downloader, types]
@@ -27,6 +28,7 @@ proc download*(title: string, extratorName: string = "kura") =
     
   proc extractFormat(ept: EpisodeData) =
     episodeUrl = palla.get(ept)
+    log.info(episodeUrl)
     allFormat = palla.formats(episodeUrl)
 
     if fInex == -1 :
@@ -34,17 +36,14 @@ proc download*(title: string, extratorName: string = "kura") =
 
     try:
       episodeMed = palla.get(allFormat[finex])
-    except RangeDefect:
+    except RangeDefect, IndexDefect:
       finex.setFormat(allFormat)
       episodeMed = palla.get(allFormat[finex])
       
     episodeFormat.add(episodeMed)
 
-  for ept in episodes[0..2] :
+  for ept in episodes :
     episodeTitle.add(ept.title)
     extractFormat(ept)
 
-  discard rijal.downloadAll(episodeFormat, episodeTitle)
-
-when isMainModule :
-  download("sorairo utility", "hian")
+  log.info($rijal.downloadAll(episodeFormat, episodeTitle))

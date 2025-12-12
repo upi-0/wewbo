@@ -19,6 +19,7 @@ type
     erCommandNotFound,
 
 method failureHandler(app: CliApplication, context: CliError) {.base.} =
+  # TODO: Jan langsung raise exception jir.
   raise newException(
     ValueError,
     "It looks like $# is not available in PATH or does not exist at all." % [app.name]

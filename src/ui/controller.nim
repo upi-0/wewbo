@@ -55,8 +55,9 @@ proc main_controller_loop(
     case actions.ask(title = episode.title).val:
       of exit:
         close(extractor.connection.client)
-        eraseScreen()
         illwillDeinit()
+        eraseScreen()
+        showCursor()
         quit(0)
 
       of nextEpisode :
