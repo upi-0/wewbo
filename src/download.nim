@@ -28,7 +28,6 @@ proc download*(title: string, extratorName: string = "kura") =
     
   proc extractFormat(ept: EpisodeData) =
     episodeUrl = palla.get(ept)
-    log.info(episodeUrl)
     allFormat = palla.formats(episodeUrl)
 
     if fInex == -1 :

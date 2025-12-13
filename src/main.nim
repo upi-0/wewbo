@@ -10,7 +10,7 @@ import ui/[
   ask,
   controller,
 ]
-import ./options
+import ./opts
 import ./extractor/[all, types]
 import ./player/all
 
@@ -47,7 +47,6 @@ proc askEpisode(ex: BaseExtractor, ad: AnimeData) : tuple[index: int, episodes: 
   index = listEpisode.find(episode)
 
   return (index: index, episodes: listEpisode)
-
 
 proc main*(title: string, extractorName: string) =
   var
