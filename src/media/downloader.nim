@@ -6,6 +6,7 @@ discard """
 
 discard """
   ffmpeg -headers \"Referer: https://megacloud.blog/\" -i URL -vcodec libx264 -crf 28 -preset veryfast -r 25 output.mp4
+  ffmpeg -headers \"Referer: https://megacloud.blog/\" -i \"$#\" -vf \"ass=local_$#\" sj.mp4
 """
 
 import
@@ -70,12 +71,47 @@ proc setOutput(ffmpeg: FfmpegDownloader, output: string) =
     createDir(ffmpeg.outdir)
   ffmpeg.addArg "$#.$#" % [ffmpeg.outdir / output.replace(" ", "-"), ffmpeg.targetExt]
 
+proc handleSubtite(ffmpeg: FfmpegDownloader, media: MediaFormatData) =
+  # Download and convert the sub-file to ass format.
+  # Burn the subtitle.
+  let
+    file = media.subtitle.get.url
+    tempFile = "wewbo_sub_file" & ".ass"
+
+  # Set Input
+  ffmpeg.addArg "-i"
+  ffmpeg.addArg file
+
+  # Set Subtite Codec [ASS]
+  ffmpeg.addArg "-c:s"
+  ffmpeg.addArg "ass"
+
+  # Download
+  ffmpeg.addArg tempFile
+
+  if ffmpeg.execute("Downloading Subtitle...") < 1 :
+    ffmpeg.setUpHeader(media.headers)
+    ffmpeg.setInput(media)
+    ffmpeg.addArg "-vf"
+    ffmpeg.addArg "ass=" & tempFile
+
+  else :
+    raise newException(ValueError, "Gagal Download Subtitle Jir")
+
+proc deleteTempFile {.nimcall.} = removeFile("wewbo_sub_file.ass")
+
 proc download*(ffmpeg: FfmpegDownloader, input: MediaFormatData, output: string) : int =
-  ffmpeg.setUpHeader(input.headers)
-  ffmpeg.setInput(input)
+  if input.subtitle.isSome:
+    ffmpeg.setUpHeader(input.headers)
+    ffmpeg.handleSubtite(input)
+  else:  
+    ffmpeg.setUpHeader(input.headers)
+    ffmpeg.setInput(input)
+
   ffmpeg.setGatauIniApa()
   ffmpeg.setOutput(output)
-  ffmpeg.execute("Downloading " & output)
+
+  ffmpeg.execute("Downloading " & output, after = some(deleteTempFile))
 
 proc downloadAll*(ffmpeg: FfmpegDownloader, inputs: openArray[MediaFormatData], outputs: openArray[string]) : seq[int] =
   assert inputs.len == outputs.len

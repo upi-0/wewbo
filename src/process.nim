@@ -8,7 +8,7 @@ from ui/log import show_log_until_complete
 from strutils import strip, `%`
 
 type
-  AfterExecuteProc = proc() {.gcsafe.}
+  AfterExecuteProc = proc() {.nimcall.}
 
   CliApplication = ref object of RootObj
     name*: string
