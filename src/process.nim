@@ -1,5 +1,6 @@
 import std/osproc
 import os
+import options
 
 # from logger import log as lg
 import logger as wewboLogger
@@ -7,6 +8,8 @@ from ui/log import show_log_until_complete
 from strutils import strip, `%`
 
 type
+  AfterExecuteProc = proc() {.gcsafe.}
+
   CliApplication = ref object of RootObj
     name*: string
     args*: seq[string]
@@ -52,11 +55,18 @@ proc setUp[T: CliApplication](app: T, path: string = app.name) : T =
 proc addArg(app: CliApplication, arg: string) =
   app.args.add arg
 
-proc execute(app: CliApplication, message: string = "Executing external app.", clearArgs: bool = true) : int =
+proc execute(
+  app: CliApplication,
+  message: string = "Executing external app.",
+  clearArgs: bool = true,
+  after: Option[AfterExecuteProc] = none(AfterExecuteProc)
+) : int =
   app.process = startProcess(app.path, ".", app.args)
   if clearArgs :
     app.args = @[]
-  app.process.show_log_until_complete(message)
+  result = app.process.show_log_until_complete(message)
+  if after.isSome :
+    get(after)()
 
 export
   CliApplication,
