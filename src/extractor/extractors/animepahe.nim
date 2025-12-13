@@ -23,7 +23,7 @@ method sInit*(ex: AnimepaheEX) : InfoExtractor =
   })
 
 method animes*(ex: AnimepaheEX, title: string) : seq[AnimeData] =
-  var res_json = ex.connection.req("/api?m=search&q=" & title).to_json()
+  let res_json = ex.connection.req("/api?m=search&q=" & title).to_json()
   if res_json.hasKey("data") :
     for anime in res_json["data"] :
       result.add AnimeData(
@@ -35,7 +35,7 @@ method animes*(ex: AnimepaheEX, title: string) : seq[AnimeData] =
   else : raise newException(AnimeNotFoundError, "Animepahe Gagal jir")      
 
 proc get_by_index(ex: AnimepaheEX, session: string, index: int = 1, sort: string = "asc") : tuple[all: JsonNode, total: int] =
-  var
+  let
     url_format = "/api?m=release&id=$#&sort=episode_$#&page=$#"
     real_url = url_format % [session, sort, $index]
     sukamto = ex.connection.req(real_url).to_json()
@@ -46,7 +46,7 @@ proc get_by_index(ex: AnimepaheEX, session: string, index: int = 1, sort: string
   )
 
 method episodes*(ex: AnimepaheEX, url: string) : seq[EpisodeData] =
-  var
+  let
     session = url.split("/")[^1]
     ells = ex.get_by_index(session, 1)
     episodes = ells.all
@@ -76,7 +76,7 @@ method get(ex: AnimepaheEX, data: EpisodeData): string =
   if data.url.len > 1 :
     return data.url
 
-  var
+  let
     session = data.addictional.get["session"].getStr()
     index = data.key.find_episode(
       data.addictional.get["total_eps"].getInt(), 30)
@@ -88,8 +88,9 @@ method get(ex: AnimepaheEX, data: EpisodeData): string =
   raise newException(ValueError, "Failed to fetch at animepahe")
 
 method formats*(ex: AnimepaheEX, url: string) : seq[ExFormatData] =
-  var
+  let
     buttons = ex.main_els(url, "button")
+  var
     src: string
 
   for button in buttons :
@@ -162,7 +163,7 @@ proc force_get_index(script: string, vault: string) : string =
       raise newException(ValueError, "Index not found")
 
 proc get_m3u8_id(script: string) : string =
-  var
+  let
     startt = script.find("m3u8|uwu|") + 9
     endd = startt + 63
 

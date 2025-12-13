@@ -10,13 +10,13 @@ import ui/[
   ask,
   controller,
 ]
-import ./options
+import ./opts
 import ./extractor/[all, types]
 import ./player/all
 
 proc setPlayer() : Player =
   var
-    playerName = optionsParser.get("player").getStr()
+    playerName = optionsParser["player"].getStr()
 
   if players.len < 1 :
     raise newException(ValueError, "There are no Players available on your device")
@@ -26,7 +26,7 @@ proc setPlayer() : Player =
 
   getPlayer(playerName)    
 
-proc askAnime(ex: BaseExtractor, title: string) : AnimeData {.raises: [AnimeNotFoundError, Exception].} =
+proc askAnime*(ex: BaseExtractor, title: string) : AnimeData {.raises: [AnimeNotFoundError, Exception].} =
   var listAnime = ex.animes(title)
   if listAnime.len < 1 :
     raise newException(AnimeNotFoundError, "No Anime Found")
@@ -47,7 +47,6 @@ proc askEpisode(ex: BaseExtractor, ad: AnimeData) : tuple[index: int, episodes: 
   index = listEpisode.find(episode)
 
   return (index: index, episodes: listEpisode)
-
 
 proc main*(title: string, extractorName: string) =
   var
@@ -75,7 +74,7 @@ proc main*(title: string, extractorName: string) =
 proc main*() =
   try :
     let
-      exName = optionsParser.get("name").getStr()
+      exName = optionsParser["name"].getStr()
       title = optionsParser.nargs[0]
     main(title, exName)
 
@@ -90,4 +89,3 @@ proc main*() =
     eraseScreen()
     showCursor()
     quit(1) 
-

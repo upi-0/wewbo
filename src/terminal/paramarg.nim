@@ -5,19 +5,19 @@ import
   options
 
 type
-  AllowedValType = enum
+  AllowedValType* = enum
     tString,
     tInt,
     tSeq,
     tBool,
 
-  ArgOption = ref object of RootObj
-    flag: string
-    name: string
-    valType: AllowedValType
+  ArgOption* = ref object of RootObj
+    flag*: string
+    name*: string
+    valType*: AllowedValType
     default*: JsonNode
 
-  ArgOptions = seq[ArgOption]  
+  ArgOptions* = seq[ArgOption]  
   
   FullArgument {.final.} = ref object of RootObj
     argLine*: seq[string]
@@ -27,7 +27,7 @@ type
     seperator*: string = ":"
     parsed: JsonNode = %*{}
 
-proc loadArguments(args: seq[string] = @[]) : FullArgument =
+proc loadArguments*(args: seq[string] = @[]) : FullArgument {.gcsafe.} =
   var rArgs = args
   
   if args.len == 0 :
@@ -48,7 +48,7 @@ proc get(options: ArgOptions, flag: string) : ArgOption =
 
   raise newException(ValueError, "Option not found for: " & flag)  
 
-proc convert(val: string, target: AllowedValType) : JsonNode =
+proc convert*(val: string, target: AllowedValType) : JsonNode {.gcsafe.} =
   try :
     case target:
     of tInt :
@@ -64,14 +64,21 @@ proc convert(val: string, target: AllowedValType) : JsonNode =
   except :
     result = %*{} 
 
-proc add(fa: FullArgument, flagT: string, nameT: string, valT: AllowedValType, defaultT: auto = "") =  
-  var defa = convert($defaultT, valT)
+proc add*(fa: FullArgument, flag: string, name: string, val: AllowedValType, default: auto = "") {.gcsafe.} =  
+  let defa = convert($default, val)
   fa.options.add ArgOption(
-      flag: flagT,
-      name: nameT,
-      valType: valT,
+      flag: flag,
+      name: name,
+      valType: val,
       default: defa
     )
+
+proc add(fa: FullArgument, argOpt: ArgOption) =
+  fa.options.add(argOpt)
+
+proc add*(fa: FullArgument, argOpts: openArray[ArgOption]) {.gcsafe.} =
+  for ar in argOpts :
+    fa.add(ar)
 
 proc fill_from_default(fa: FullArgument) =
   for option in fa.options :
@@ -80,7 +87,7 @@ proc fill_from_default(fa: FullArgument) =
     else :
       discard
 
-proc parse(fa: FullArgument) =
+proc parse*(fa: FullArgument) {.gcsafe.} =
   var
     base: seq[string]
     faKey: string
@@ -112,16 +119,14 @@ proc parse(fa: FullArgument) =
     else :
       fa.nargs.add arg
 
-template get(fa: FullArgument, name: string) : JsonNode =
-  fa.parsed[name]
+proc `[]`*(fa: FullArgument, key: string) : JsonNode {.gcsafe.} =
+  fa.parsed[key]
 
 export
   FullArgument,
-  AllowedValType,
-  loadArguments,
-  add,
-  parse,
+  AllowedValType
+
+export  
   getStr,
   getInt,
-  getBool,
-  get
+  getBool

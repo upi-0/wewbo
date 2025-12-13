@@ -7,7 +7,7 @@ import std/[
   os
 ]
 
-proc show_log_until_complete*(process: Process, checkup: int = 500): int =
+proc show_log_until_complete*(process: Process, message: string, checkup: int = 500): int =
   var
     stream = process.outputStream()
     width = terminalWidth()
@@ -24,7 +24,7 @@ proc show_log_until_complete*(process: Process, checkup: int = 500): int =
   proc renderFrame() =
     tb.clear()
     tb.renderBanner()
-    tb.renderTopBorder(7)
+    tb.renderTopBorder(7, title=message)
     
     # Render content area borders
     for i in 8..height - 2:

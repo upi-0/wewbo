@@ -3,16 +3,16 @@ import ./terminal/paramarg
 var optionsParser = loadArguments()
 
 optionsParser.add(
-  flagT = "-n",
-  nameT = "name",
-  valT = tString,
-  defaultT = "kura"
+  flag = "-n",
+  name = "name",
+  val = tString,
+  default = "kura"
 )
 
 optionsParser.add(
-  flagT = "-p",
-  nameT = "player",
-  valT = tString,
+  flag = "-p",
+  name = "player",
+  val = tString,
 )
 
 optionsParser.parse()

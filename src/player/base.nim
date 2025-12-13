@@ -4,8 +4,7 @@ import httpclient
 import ../process
 import ../media/types
 
-type
-  Player = ref object of CliApplication
+type Player = ref object of CliApplication
 
 method watch_mp4(player: Player, media: MediaFormatData) {.base.} = discard
 method watch_m3u8(player: Player, media: MediaFormatData) {.base.} = discard
@@ -48,8 +47,8 @@ export
   Player,
   MediaFormatData,
   MediaSubtitle,
-  MediaHttpHeader, # Bentar
-  MediaExt,
-  HttpHeaders,
+  MediaExt
+
+export  
   get,
   setUp
