@@ -1,9 +1,7 @@
 import std/osproc
 import os
 
-# from logger import log as lg
 from ui/log import show_log_until_complete
-from strutils import strip, `%`
 
 type
   CliApplication = ref object of RootObj
@@ -18,10 +16,7 @@ type
     erCommandNotFound,
 
 method failureHandler(app: CliApplication, context: CliError) {.base.} =
-  raise newException(
-    ValueError,
-    "It looks like $# is not available in PATH or does not exist at all." % [app.name]
-  )
+  discard
 
 proc check(app: CliApplication) : bool =
   findExe(app.path).len >= 1
