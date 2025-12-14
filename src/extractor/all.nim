@@ -1,6 +1,7 @@
 from strutils import `%`
 import
   base,
+  tables,
   extractors/[
     animepahe,
     kuramanime,
@@ -8,19 +9,19 @@ import
     hianime
   ]
 
-proc getExtractor(name: string) : BaseExtractor =
-  let sources: array[4, BaseExtractor] = [
-    AnimepaheEX(name: "pahe"),
-    OtakudesuEX(name: "taku"),
-    KuramanimeEX(name: "kura"),
-    HianimeEX(name: "hian")
-  ]
+let sukamto: Table[string, proc(ex: var BaseExtractor) {.nimcall.}] = {
+  "pahe" : newAnimepahe,
+  "hian" : newHianime,
+  "kura" : newKuramanime,
+  "taku" : newOtakudesu
+}.toTable
 
-  for source in sources :
-    if source.name == name :
-      return source.init()
-
-  raise newException(ValueError, "No source found: " & "'$#'" % [name])        
+proc getExtractor(name: string): BaseExtractor = 
+  if not sukamto.hasKey(name) :
+    raise newException(ValueError, "No source found: " & "'$#'" % [name]) 
+  
+  sukamto[name](result)
+  result.init()
 
 proc get_extractor_from_source(name: string = "pahe") : BaseExtractor =
   name.getExtractor() 
