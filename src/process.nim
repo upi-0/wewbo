@@ -1,6 +1,7 @@
 import std/osproc
 import os
 import options
+import logger as goblok
 
 from ui/log import show_log_until_complete
 
@@ -43,7 +44,7 @@ proc execute(
   clearArgs: bool = true,
   after: Option[AfterExecuteProc] = none(AfterExecuteProc)
 ) : int =
-  app.process = startProcess(app.path, ".", app.args)
+  app.process = startProcess(app.path.findExe(), ".", app.args)
   if clearArgs :
     app.args = @[]
   result = app.process.show_log_until_complete(message)
