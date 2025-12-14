@@ -4,12 +4,6 @@ import
   ../ui/ask
 
 type 
-  InfoExtractor* = object of RootObj
-    host*: string
-    name*: string
-    userAgent*: string
-    http_headers*: Option[JsonNode] = none(JsonNode)
-
   AnimeData* = ref object of Questionable
     url*: string
 

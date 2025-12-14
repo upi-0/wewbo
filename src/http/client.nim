@@ -1,9 +1,13 @@
+{.define: ssl.}
+
 import std/[
   strutils,
   httpclient,
   json,
   uri,
-  options
+  options,
+  net,
+  os
 ]
 import ../media/types
 import ./cache
@@ -16,9 +20,27 @@ type
     client*: HttpClient
     headers*: HttpHeaders
     cache*: HttpCache
+    ssl: SslContext
 
 proc info(con: HttpConnection, text: string) =
   log.info("[HTTP] " & text)
+
+proc ensureCACert(): string =
+  let pemName = getAppDir() / "cacert.pem"
+
+  if fileExists(pemName):
+    return pemName
+  
+  const url = "https://curl.se/ca/cacert.pem"
+  var
+    context = newContext(verifyMode = CVerifyNone)
+    client = newHttpClient(sslContext = context)
+
+  log.info("[HTTP] Get cert.pem")
+  pemName.writeFile(client.getContent(url))
+  client.close()
+
+  return pemName
 
 proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode)): HttpConnection =
   var
@@ -49,15 +71,21 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
   base_headers.add(("Accept", join(accept, ";")))
   base_headers.add(("Host", host))
 
-  var
-    headers = newHttpHeaders base_headers
-    client = newHttpClient(headers = headers)
+  let
+    caFile = ensureCACert()
+    context = newContext(caFile = caFile)
+    headers = newHttpHeaders(base_headers)
+    client = newHttpClient(
+      headers = headers,
+      sslContext = context
+    )
 
   return HttpConnection(
     host: host,
     client: client,
     headers: headers,
-    cache: HttpCache()
+    cache: HttpCache(),
+    ssl: context
   )
 
 proc newHttpConnection*(host: string, header: MediaHttpHeader) : HttpConnection =
@@ -91,7 +119,10 @@ proc normalize_url*(connection: HttpConnection, url: string): string =
 proc reNewClient(connection: HttpConnection) =
   var
     headers = connection.headers
-    client = newHttpClient(headers = headers)
+    client = newHttpClient(
+      headers = headers,
+      sslContext = connection.ssl
+    )
 
   connection.client = client
 

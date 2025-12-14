@@ -1,7 +1,8 @@
 import
   xmltree,
   q,
-  strutils
+  strutils,
+  options
 
 import  
   ./types,
@@ -15,13 +16,13 @@ import ../logger
 
 type
   BaseExtractor {.inheritable.} = ref object of RootObj
+    host*: string
     name*: string
-    info*: InfoExtractor
+    userAgent*: string
+    http_headers*: Option[JsonNode] = none(JsonNode)
     connection*: HttpConnection
     lg*: WewboLogger
     initialized: bool = false
-
-method sInit*(extractor: BaseExtractor) : InfoExtractor {.base.} = discard
 
 method animes*(ex: BaseExtractor, title: string) : seq[AnimeData] {.base.} = discard
 method get*(ex: BaseExtractor, data: AnimeData) : string {.base.} = data.url
@@ -40,16 +41,15 @@ proc init*[T: BaseExtractor](
   proxy: string = "",
   userAgent: string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
   resolution: FormatResolution = best
-) : T =
+) =
   extractor.lg = log
-  extractor.info = extractor.sInit()
+  extractor.userAgent = userAgent
   extractor.connection = newHttpConnection(
-    extractor.info.host,
+    extractor.host,
     userAgent,
-    extractor.info.http_headers,
+    extractor.http_headers,
   )
   extractor.initialized = true
-  result = extractor
 
 proc main_el*(extractor: BaseExtractor, url: string, query: string) : XmlNode =
   extractor.connection
@@ -68,8 +68,7 @@ export
   info
 
 export
-  BaseExtractor,
-  InfoExtractor
+  BaseExtractor
 
 export  
   AnimeData,

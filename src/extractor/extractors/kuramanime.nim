@@ -11,9 +11,8 @@ from strutils import split, parseInt
 type
   KuramanimeEX {.final.} = ref object of BaseExtractor
 
-method sInit*(ex: KuramanimeEX) : InfoExtractor =
-  result.host = "v8.kuramanime.tel"
-  result.name = "kura"
+proc newKuramanime*(ex: var BaseExtractor) =
+  ex = KuramanimeEX(name: "kura", host: "v8.kuramanime.tel")
 
 method animes*(ex: KuramanimeEX, title: string = "") : seq[AnimeData] =
   var

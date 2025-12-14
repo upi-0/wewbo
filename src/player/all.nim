@@ -3,6 +3,7 @@ import players/[
   ffplayPlyr,
   mpvPlyr
 ]
+from ../process import check
 
 let player: array[2, Player] = [
   FfplayPL(name: "ffplay"),
@@ -11,7 +12,7 @@ let player: array[2, Player] = [
 
 proc getAvailabePlayer() : seq[string] =
   for pler in player :
-    if pler.setup().available :
+    if pler.check():
       result.add pler.name
 
 proc getPlayer*(name: string = "mpv") : Player =
