@@ -25,12 +25,14 @@ type
       referer: "https://megacloud.blog/"
     )
 
-method sInit*(ex: HianimeEX) : InfoExtractor =
-  result.host = "hianime.to"
-  result.name = "hian"
-  result.http_headers = some(%*{
-    "Referer" : "https://hianime.to/"
-  })
+proc newHianime*(extractor: var BaseExtractor) =
+  extractor = HianimeEX(
+    name: "hian",
+    host: "hianime.to",
+    http_headers: some(%*{
+      "Referer" : "https://hianime.to/"
+    })
+  )
 
 method animes*(ex: HianimeEX, title: string = "") : seq[AnimeData] =
   var
