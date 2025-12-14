@@ -86,6 +86,3 @@ proc stream*(f: FullArgument) =
     log.info("ERROR: " & getCurrentExceptionMsg())
     log.info("This Program will close automaticly in 3 Seconds")
     sleep(3000)
-    eraseScreen()
-    showCursor()
-    quit(1) 

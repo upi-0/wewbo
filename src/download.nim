@@ -24,7 +24,6 @@ proc download*(f: FullArgument) =
     animeUrl = palla.get anime
     episodes = palla.episodes(animeUrl)
 
-  
   var
     episodeTitle: seq[string]
     episodeFormat: seq[MediaFormatData]

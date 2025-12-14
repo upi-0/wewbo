@@ -1,10 +1,12 @@
 import
   stream,
   download,
-  version
+  version,
+  terminal/[command, paramarg]
 
 import
-  terminal/[command, paramarg]
+  illwill,
+  terminal
 
 const sourceHelp = "Select Source [kura|pahe|hime|taku]"
 
@@ -28,3 +30,12 @@ let app = [
 
 echo "wewbo " & ver
 app.start()
+
+try:
+  illwillDeinit()
+except:
+  discard
+finally:
+  showCursor()
+  eraseScreen()  
+  quit(0)
