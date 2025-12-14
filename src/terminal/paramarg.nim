@@ -34,7 +34,7 @@ proc loadArguments*(args: seq[string] = @[]) : FullArgument {.gcsafe.} =
     rArgs = commandLineParams()
 
   return FullArgument(
-    argline: rArgs
+    argLine: rArgs
   )
 
 proc extract_flags(options: ArgOptions) : seq[string] = 

@@ -22,7 +22,7 @@ method failureHandler(app: CliApplication, context: CliError) {.base.} =
   discard
 
 proc check(app: CliApplication) : bool =
-  findExe(app.path).len >= 1
+  findExe(app.path).len >= 1 or findExe(app.name).len >= 1
 
 proc setUp[T: CliApplication](app: T, path: string = app.name) : T =
   app.path = path

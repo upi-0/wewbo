@@ -3,7 +3,8 @@ import
 
 import
   tables,
-  os
+  os,
+  sequtils
 
 type
   SubCommandProc = proc(args: FullArgument) {.nimcall.}
@@ -30,9 +31,11 @@ proc options(flag: string, name: string, val: AllowedValType, default: auto = ""
     default: convert($default, val)
   )
 
-proc exec(command: SubCommand) =
+proc exec(command: SubCommand, removeName: bool = true) =
   command.args.add(command.argOpts)
   command.args.parse()
+  if removeName :
+    command.args.nargs.delete(0..0)
   command.entry(command.args)
 
 proc start(subCommands: openArray[SubCommand]) =
@@ -46,8 +49,7 @@ proc start(subCommands: openArray[SubCommand]) =
 
   except AssertionDefect, IndexDefect:
     # Default entry
-    subCommands[0].exec()  
-
+    subCommands[0].exec(removeName = false)  
 
 export
   SubCommand

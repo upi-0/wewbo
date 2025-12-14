@@ -2,21 +2,28 @@ import
   logger,
   extractor/all,
   ui/ask,
-  media/[downloader, types]
+  media/[downloader, types],
+  terminal/paramarg
 
-from main import askAnime
+from stream import askAnime
 
 proc setFormat(formatIndex: var int, values: seq[ExFormatData]) =
   let va = values.find(values.ask())
   formatIndex = va
 
-proc download*(title: string, extratorName: string = "kura") =
+proc download*(f: FullArgument) =
   let
-    palla = getExtractor(extratorName)
-    anime = palla.askAnime(title)
+    palla = getExtractor(f["source"].getStr)
+    anime = palla.askAnime(f.nargs[0])
+    tdr = f["outdir"].getStr
+    rijal = newFfmpegDownloader(
+      outdir = if tdr != "": tdr else: anime.title
+    )
+
+  let        
     animeUrl = palla.get anime
     episodes = palla.episodes(animeUrl)
-    rijal = newFfmpegDownloader(outdir = anime.title)
+
   
   var
     episodeTitle: seq[string]
