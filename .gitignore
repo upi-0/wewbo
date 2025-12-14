@@ -1,4 +1,6 @@
 *.exe
+*.tar.gz
+libressl*
 
 nimcache
 testresults
