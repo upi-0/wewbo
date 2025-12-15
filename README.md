@@ -45,7 +45,7 @@ wewbo [anime title]
 
 ### Options
 
-- `-n` or `--name`: Select anime source (default: `kura`)
+- `-s`: Select anime source (default: `kura`)
 - `kura` - Kuramanime
 - `pahe` - Animepahe
 - `hime` - Hianime
@@ -62,13 +62,13 @@ wewbo [anime title]
 wewbo "naruto"
 
 # Search for anime from Animepahe
-wewbo -n:pahe "one piece"
+wewbo -s:pahe "one piece"
 
 # Search for anime using FFplay as player
 wewbo -p:ffplay "attack on titan"
 
 # Option Combinations
-wewbo -n:hian -p:mpv "demon slayer"
+wewbo -s:hime -p:mpv "demon slayer"
 ```
 
 ### How It Works
@@ -90,7 +90,7 @@ Average response time by source (in seconds):
 ## Roadmap
 
 - [x] HTTP Cache (v0.7)
-- [ ] Batch Downloader (v0.8)
+- [x] Batch Downloader (v0.8)
 - [ ] Concurrently Searching (v0.9)
 - [ ] Cleaned TUI (v0.9.5)
 
