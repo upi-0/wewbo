@@ -37,24 +37,34 @@ nim c src/wewbo
 
 ## How to Use
 
-### Basic Commands
+### Streaming
 
 ```bash
 wewbo [anime title]
+wewbo stream [anime title]
+```
+
+### Downloading
+```bash
+wewbo dl [anime title]
 ```
 
 ### Options
+```bash
+wewbo 0.8
+list command: `wewbo [command][opts][narg]`
 
-- `-s`: Select anime source (default: `kura`)
-- `kura` - Kuramanime
-- `pahe` - Animepahe
-- `hime` - Hianime
-- `taku` - Otakudesu
+stream
+ -s             Select Source [kura|pahe|hime|taku]
+ -p             Select Player [ffmpeg|mpv]
 
-- `-p` or `--player`: Select media player (default: `mpv`)
-- `mpv` - MPV Player
-- `ffplay` - FFplay
-
+dl
+ -s             Select Source [kura|pahe|hime|taku]
+ --outdir       Define output directory
+ -fps           Set Video frame per second
+ -crf           Set Video CRF (For compression)
+ --no-sub       Dont include subtitle (Soft-sub only)
+```
 ### Usage Examples
 
 ```bash
