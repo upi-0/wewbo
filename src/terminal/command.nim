@@ -13,15 +13,17 @@ type
   SubCommand = ref object of RootObj
     name*: string
     entry*: SubCommandProc
+    help*: string
     args: FullArgument
     argOpts: seq[ArgOption]
 
-proc newSubCommand(name: string, entry: SubCommandProc, argOpts: seq[ArgOption]) : SubCommand {.gcsafe.} =
+proc newSubCommand(name: string, entry: SubCommandProc, argOpts: seq[ArgOption] = @[]; help: string = "") : SubCommand {.gcsafe.} =
   result = SubCommand(
     name: name,
     entry: entry,
     args: loadArguments(),
-    argOpts: argOpts
+    argOpts: argOpts,
+    help: help
   )
   result.args.add(argOpts)
 
@@ -41,7 +43,8 @@ proc perLine(li: array[2, string], pl: int = terminalWidth() div 3) : string =
     return asd[0 .. pl - 1] & " " & usd
 
 proc showHelp(subCommand: SubCommand) =
-  echo subCommand.name
+  echo perLine([subCommand.name, subCommand.help], 16)
+
   for arg in subCommand.args.options :
     echo " " & perLine([arg.flag, arg.help], 15)
 
