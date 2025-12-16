@@ -26,7 +26,7 @@ let app = [
     "stream", stream.stream, @[
       option("-s", "source", tString, "hime", sourceHelp),
       option("-p", "player", tString, help="Select Player [ffmpeg|mpv]")
-    ]
+    ], "Streaming Anime"
   ),
   newSubCommand(
     "dl", download.download, @[
@@ -35,10 +35,10 @@ let app = [
       option("-fps", "fps", tInt, 24, "Set Video frame per second"),
       option("-crf", "crf", tInt, 28, "Set Video CRF (For compression)"),
       option("--no-sub", "nsub", tBool, false, "Dont include subtitle (Soft-sub only)")
-    ]
+    ], "Downloading Anime"
   ),
   newSubCommand(
-    "--list-available-players", listAvailablePlayers, @[]
+    "--list-players", listAvailablePlayers, help="list availabale players in your device."
   ),
 ]
 
