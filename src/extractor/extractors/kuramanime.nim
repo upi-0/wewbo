@@ -1,6 +1,7 @@
 import xmltree
 import q
 import options
+import json
 import ../base
 import ../../http/[
   client,
@@ -13,6 +14,10 @@ type
 
 proc newKuramanime*(ex: var BaseExtractor) =
   ex = KuramanimeEX(name: "kura", host: "v8.kuramanime.tel")
+  # Harus dipantau terus nich.
+  ex.http_headers = some(%*{
+    "Authorization" : "Bearer T38Gut4bMdyVMnIy7Wx4cqcsz1vosNWB"
+  })
 
 method animes*(ex: KuramanimeEX, title: string = "") : seq[AnimeData] =
   var
@@ -60,6 +65,8 @@ method episodes*(ex: KuramanimeEX, url: string) : seq[EpisodeData] =
     )
 
 method formats*(ex: KuramanimeEX, url: string) : seq[ExFormatData] =
+  ex.info(url)
+
   var
     sources: seq[XmlNode] = ex.main_els(url, "video source")
 
