@@ -86,20 +86,20 @@ proc getMainHLS(ex: HianimeEX, megaCloudId: string) : JsonNode =
 
   proc findNonce() =
     try:
-      ex.info("Archive Info: " & link)
       content = ex.connection.req(link, host="megacloud.blog", useCache=false).to_readable()
       fileId = content.to_selector().select("div.fix-area")[0].attr("data-id")
       nonce = content.forcedGetBetween(nonceIdRule)
 
       if nonce.strip.len < 48 :
-        ex.info("Failed. Try again...")
+        ex.info("Failed. Try again.")
         findNonce()
 
     except IndexDefect:
-      ex.info("Failed. Try again...")
+      ex.info("Failed. Try again.")
       findNonce()
 
   ex.info("Finding Nonce")
+  ex.info("Archive Info: " & link)
   findNonce()
   formatURL = link.replace(fileId & "?k=1", "getSources?id=$#&_k=$#" % [fileId, nonce])
   formatData = ex.connection.req(formatURL, host="megacloud.blog").to_json()
