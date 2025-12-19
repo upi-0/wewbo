@@ -44,6 +44,7 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
   var
     outputBuffer: string
     stream: Stream = process.outputStream()
+
   while true:
     if process.running():
       try:
@@ -69,9 +70,9 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
       except:
         discard
       
-      sleep(checkup)
+      checkup.sleep()
       app.log.clear()
-      app.log.info("Close")
+
       return process.peekExitCode()  
 
 proc addArg(app: CliApplication, arg: string) =
