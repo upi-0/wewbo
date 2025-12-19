@@ -1,5 +1,5 @@
 # Wewbo
-An interactive terminal application for searching and watching anime from various streaming sources.
+An interactive terminal application for searching and watching anime from various streaming sources. [Install Here](https://github.com/upi-0/wewbo/edit/main/README.md#install)
 <p align="center">
   <img width="75%" src="https://raw.githubusercontent.com/upi-0/wewbo/refs/heads/main/asset/tuiPreview.png">
 </p>
@@ -15,33 +15,6 @@ Wewbo is a command-line-based application that allows you to search for anime, s
 | Kura | https://v8.kuramanime.tel | ❌ | Cryptography |
 | Pahe | https://animepahe.to | ✅ | - |
 | Taku | https://otakudesu.best | ✅ | - |
-
-## Install
-### Scoop
-```bash
-scoop install https://raw.github.com/upi-0/wewbo/main/wewbo.json
-```
-### Nim
-```bash
-git clone https://github.com/upi-0/wewbo
-cd wewbo
-nimble install q htmlparser illwill
-nim c src/wewbo
-```
-
-## Features
-- Search anime from various sources (Kuramanime, Animepahe, Hianime, Otakudesu)
-- Interactive and easy-to-use terminal interface
-- Support for multiple media players (MPV, FFplay)
-- HLS stream extraction (HTTP Live Streaming)
-- HTTP cache for better performance
-- Easy episode navigation
-- Download manager for batch downloading
-
-## System Requirements
-
-- Media Player: MPV or FFplay installed on your system
-- Internet connection
 
 ## How to Use
 
@@ -96,14 +69,18 @@ wewbo -s:hime -p:mpv "demon slayer"
 3. Select the episode you want to watch
 4. The application will automatically open the media player and start streaming
 
-## Performance Information
-
-Average response time by source (in seconds):
-
-- Animepahe: 2.365s
-- Kuramanime: 2,942s
-- Hianime: 3,516s
-- Otakudesu: 5,968s
+## Install
+### Scoop
+```bash
+scoop install https://raw.github.com/upi-0/wewbo/main/wewbo.json
+```
+### Nim
+```bash
+git clone https://github.com/upi-0/wewbo
+cd wewbo
+nimble install q htmlparser illwill
+nim c src/wewbo
+```
 
 ## Roadmap
 
