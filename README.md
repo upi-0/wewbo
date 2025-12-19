@@ -1,5 +1,5 @@
 # Wewbo
-An interactive terminal application for searching and watching anime from various streaming sources. [Install Here](https://github.com/upi-0/wewbo/edit/main/README.md#install)
+An interactive terminal application for searching and watching anime from various streaming sources. [Install Here](https://github.com/upi-0/wewbo#install)
 <p align="center">
   <img width="75%" src="https://raw.githubusercontent.com/upi-0/wewbo/refs/heads/main/asset/tuiPreview.png">
 </p>
