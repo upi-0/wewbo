@@ -1,7 +1,6 @@
 import std/osproc
 import os
 import options
-import logger as goblok
 
 from ui/log import show_log_until_complete
 
@@ -15,7 +14,7 @@ type
     process: Process
     available*: bool = false
 
-  CliError = enum
+  CliError* = enum
     erUnknown,
     erCommandNotFound,
 
