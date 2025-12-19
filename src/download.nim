@@ -8,8 +8,10 @@ import
 from stream import askAnime
 from utils import exit
 
+var spami: string
+
 proc setFormat(formatIndex: var int, values: seq[ExFormatData]) =
-  let va = values.find(values.ask())
+  let va = values.find(values.ask(title="select format for: " & spami))
   formatIndex = va
 
 proc download*(f: FullArgument) =
@@ -30,19 +32,24 @@ proc download*(f: FullArgument) =
     episodeFormat: seq[MediaFormatData]
     allFormat: seq[ExFormatData]
     episodeMed: MediaFormatData
+    res: MediaResolution
     episodeUrl: string
     fInex: int = -1
-    
+
   proc extractFormat(ept: EpisodeData) =
     episodeUrl = palla.get(ept)
     allFormat = palla.formats(episodeUrl)
 
     if fInex == -1 :
       fInex.setFormat(allFormat)
+      res = allFormat[fInex].title.detectResolution()
 
     try:
+      assert allFormat[fInex].title.detectResolution() == res
+      log.info("[dl  ] auto select for " & spami)
       episodeMed = palla.get(allFormat[finex])
-    except RangeDefect, IndexDefect:
+
+    except RangeDefect, IndexDefect, AssertionDefect:
       finex.setFormat(allFormat)
       episodeMed = palla.get(allFormat[finex])
       
@@ -50,6 +57,7 @@ proc download*(f: FullArgument) =
 
   for ept in episodes :
     episodeTitle.add(ept.title)
+    spami = ept.title
     extractFormat(ept)
 
   log.info($rijal.downloadAll(episodeFormat, episodeTitle))
