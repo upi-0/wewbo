@@ -7,6 +7,7 @@
 openssl*
 libressl*
 pcre*
+openssl*
 
 # Internal
 nimcache

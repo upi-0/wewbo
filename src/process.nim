@@ -1,8 +1,12 @@
-import std/osproc
-import os
-import options
+import
+  std/osproc,
+  os,
+  options,
+  strutils,
+  streams
 
-from ui/log import show_log_until_complete
+import
+  ./logger
 
 type
   AfterExecuteProc = proc() {.nimcall.}
@@ -11,7 +15,8 @@ type
     name*: string
     args*: seq[string]
     path: string
-    process: Process
+    process {.deprecated.}: Process
+    log*: WewboLogger
     available*: bool = false
 
   CliError* = enum
@@ -27,12 +32,48 @@ proc check(app: CliApplication) : bool =
 proc setUp[T: CliApplication](app: T, path: string = app.name) : T =
   app.path = path
   app.available = app.check()
+  app.log = newWewboLogger(app.name)
 
   if not app.available :
     app.failureHandler(erCommandNotFound)
     quit(1)
 
   app    
+
+proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int =
+  var
+    outputBuffer: string
+    stream: Stream = process.outputStream()
+
+  while true:
+    if process.running():
+      try:
+        let available = stream.readAll()
+        if available.len > 0:
+          outputBuffer &= available          
+          let lines = outputBuffer.split('\n')
+          for i in 0..<lines.len - 1:
+            app.log.info(lines[i])
+          outputBuffer = lines[^1]
+      except:
+        discard
+      
+      sleep(checkup)
+    else:
+      try:
+        let remaining = stream.readAll()
+        if remaining.len > 0:
+          outputBuffer &= remaining
+          let lines = outputBuffer.split('\n')
+          for line in lines:
+            app.log.info(line)
+      except:
+        discard
+      
+      checkup.sleep()
+      app.log.clear()
+
+      return process.peekExitCode()  
 
 proc addArg(app: CliApplication, arg: string) =
   app.args.add arg
@@ -43,10 +84,11 @@ proc execute(
   clearArgs: bool = true,
   after: Option[AfterExecuteProc] = none(AfterExecuteProc)
 ) : int =
-  app.process = startProcess(app.path.findExe(), ".", app.args)
+  let process = startProcess(app.path.findExe(), ".", app.args)
+  result = app.start(process, message)
+
   if clearArgs :
     app.args = @[]
-  result = app.process.show_log_until_complete(message)
   if after.isSome :
     get(after)()
 

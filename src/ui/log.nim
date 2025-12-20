@@ -7,7 +7,7 @@ import std/[
   os
 ]
 
-proc show_log_until_complete*(process: Process, message: string, checkup: int = 500): int =
+proc show_log_until_complete*(process: Process, message: string, checkup: int = 500): int {.deprecated.} =
   var
     stream = process.outputStream()
     width = terminalWidth()

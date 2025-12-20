@@ -10,23 +10,32 @@ proc renderItems[T: Questionable](tb: var TerminalBuffer, data: openArray[T],
                                   selected: int, pageStart: int, pageEnd: int) =
   ## Render list items dengan highlight untuk item terpilih
   var row = startY
-  
+  var message: string
+
+  proc toMessage(originalMessage: string; targetMessage: var string) {.deprecated.} =
+    targetMessage = originalMessage
+    let areaY = termWidth - 2
+    if targetMessage.len >= areaY :
+      targetMessage = targetMessage[0 .. areaY - 7] & "..."
+    targetMessage.stripLineEnd()  
+    
   for i in pageStart ..< pageEnd:
     let item = data[i]
-    let contentLen = item.title.len + 2
+    item.title.toMessage(message)  
+    let contentLen = message.len + 2
     let padding = termWidth - contentLen - 2
-    
+
     if i == selected:
       # Selected Line
       tb.write(0, row, fgCyan, "║", resetStyle)
       tb.setBackgroundColor(bgGreen)
       tb.setForegroundColor(fgBlack, bright=true)
-      tb.write(1, row, "► " & item.title & " ".repeat(padding))
+      tb.write(1, row, "► " & message & " ".repeat(padding))
       tb.resetAttributes()
       tb.write(termWidth - 1, row, fgCyan, "║")
     else:
       # Normal Line
-      tb.write(0, row, fgCyan, "║", fgWhite, "  " & item.title & " ".repeat(padding), fgCyan, "║")
+      tb.write(0, row, fgCyan, "║", fgWhite, "  " & message & " ".repeat(padding), fgCyan, "║")
     
     inc row
 
