@@ -1,1 +1,1 @@
-const ver* = "0.8"
+const ver* = "0.8.2"
