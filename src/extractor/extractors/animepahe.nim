@@ -192,5 +192,6 @@ method get*(ex: AnimepaheEX, format: ExFormatData) : MediaFormatData =
 
   result.video = "https://vault-$vault.$host.top/stream/$vault/$index/$m3u8_id/uwu.m3u8" % m3u8_data
   result.typeExt = extM3u8
+  result.headers = some(MediaHttpHeader(referer: "https://kwik.cx/"))
 
 export AnimepaheEX
