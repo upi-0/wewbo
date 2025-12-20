@@ -65,6 +65,8 @@ method episodes*(ex: KuramanimeEX, url: string) : seq[EpisodeData] =
     )
 
 method formats*(ex: KuramanimeEX, url: string) : seq[ExFormatData] =
+  ex.info(url)
+
   var
     sources: seq[XmlNode] = ex.main_els(url, "video source")
 

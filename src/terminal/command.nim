@@ -7,6 +7,8 @@ import
   strutils,
   terminal
 
+from ../utils import exit
+
 type
   SubCommandProc = proc(args: FullArgument) {.nimcall.}
 
@@ -65,6 +67,7 @@ proc start(subCommands: openArray[SubCommand]) =
       for subCmd in subCommands :
         if nuhun == subCmd.name :
           subCmd.exec()
+          exit(0)
   
       assert false
 

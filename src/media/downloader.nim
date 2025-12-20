@@ -31,6 +31,9 @@ type
 proc newFfmpegDownloader*(outdir: string) : FfmpegDownloader =
   FfmpegDownloader(name: "ffmpeg", outdir: outdir).setUp()
 
+method failureHandler(ffmpeg: FfmpegDownloader, context: CLiError) =
+  raise newException(ValueError, "ffmpeg is not detected on your system.")
+
 proc setHeader(ffmpeg: FfmpegDownloader, ty, val: string) =
   let ngantukCok = {
     "userAgent" : "User-Agent",

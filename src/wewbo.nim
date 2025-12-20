@@ -19,8 +19,6 @@ proc listAvailablePlayers*(n: FullArgument) =
   else :
     echo "There are no players in your device."      
 
-  quit(0)    
-
 let app = [
   newSubCommand(
     "stream", stream.stream, @[

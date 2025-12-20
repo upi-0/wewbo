@@ -72,6 +72,11 @@ func getAttribute*(text: string, start: string, endo: string = ","): string =
   ]
   text.forcedGetBetween(rules)
 
+proc contains*(text: string, target: openArray[string]) : bool =
+  for tgt in target :
+    if text.contains(tgt) :
+      return true
+  false
 
 proc getAfter*(text: string, start: string): string =
   var stato = text.find(start) + start.len
