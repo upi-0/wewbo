@@ -4,6 +4,7 @@
 *.out
 
 # Lib
+openssl*
 libressl*
 pcre*
 
