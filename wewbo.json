@@ -1,6 +1,6 @@
 {
   "version": "0.8.2",
-  "hash" : "sha256:cecb4fecb016fe4a53851d59d560f73b3e73c548211243975804d097348fd3c7",
+  "hash" : "sha256:131f150d4b14896938cff5f57f6a78e451b1e5039ad7b8736724a93f5c5268a4",
   "bin": "wewbo.exe",
   "suggest" : {
     "mpv" : "mpv"
