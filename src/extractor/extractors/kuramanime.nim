@@ -16,7 +16,7 @@ proc newKuramanime*(ex: var BaseExtractor) =
   ex = KuramanimeEX(name: "kura", host: "v8.kuramanime.tel")
   # Harus dipantau terus nich.
   ex.http_headers = some(%*{
-    "Authorization" : "Bearer T38Gut4bMdyVMnIy7Wx4cqcsz1vosNWB"
+    "Authorization" : "Bearer 40hIJyhDLNXm5KBlK"
   })
 
 method animes*(ex: KuramanimeEX, title: string = "") : seq[AnimeData] =
