@@ -1,7 +1,9 @@
 import
-  json,
-  options,
-  ../ui/ask
+  json, options
+
+import  
+  ../ui/ask,
+  ../media/types
 
 type 
   AnimeData* = ref object of Questionable
@@ -18,6 +20,15 @@ type
 
   FormatResolution* = enum
     bad, great, best
+
+  AllEpisodeFormats* = tuple[
+    titles: seq[string],
+    formats: seq[MediaFormatData]
+  ]
+
+# Fallback
+type
+  FbExtractEpisodeFormats* = proc(fIndex: var int; formats: seq[ExFormatData]; spami: string = "")
 
 # Exceptions
 type
