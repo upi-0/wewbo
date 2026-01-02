@@ -1,8 +1,11 @@
-import terminal
+import
+  terminal, options
+
 import
   ./ask,
   ../extractor/all,
-  ../player/all
+  ../player/all,
+  ../media/types
 
 from httpclient import close
 from illwill import illwillDeinit
@@ -74,11 +77,17 @@ proc main_controller_loop(
         continue
 
       of selectAndPlay :
-        var
+        let
           format = extractor.formats(extractor.get episode).ask(title="Select Format")
           media_format = extractor.get(format)
+          subtitles = extractor.subtitles(format)
 
-        pler.watch(media_format)
+        if subtitles.isSome:
+          let subtitle = subtitles.get.ask(title="Select subtitle")
+          pler.watch(media_format, subtitle.some)
+        else:
+          pler.watch(media_format)
+
         continue
 
       of changePlayer :

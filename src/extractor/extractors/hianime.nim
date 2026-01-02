@@ -105,7 +105,7 @@ proc getMainHLS(ex: HianimeEX, megaCloudId: string) : JsonNode =
   formatData = ex.connection.req(formatURL, host="megacloud.blog").to_json()
 
   return formatData
-
+  
 method formats*(ex: HianimeEX, url: string) : seq[ExFormatData] =
   let
     dataJson = ex.connection.req(url).to_json()
@@ -123,42 +123,42 @@ method formats*(ex: HianimeEX, url: string) : seq[ExFormatData] =
     )
     tracks = hlsInfo.getOrDefault("tracks")
     allFormats = m3u8Format.formats.sortByResolution()
+  
+  var t: Option[JsonNode] = some(tracks)
 
-  if not tracks.isNil and tracks.len > 1 :
-    for track in tracks:
-      for format in allFormats :
-        if track.getOrDefault("label").isNil :
-          break
-        result.add ExFormatData(
-          title: "$# - $#" % [format.resolution, track["label"].getStr()],
-          formatIdentifier: format.url,
-          addictional: some(%*{
-            "subUrl": track["file"],
-            "subLabel": track["label"]
-          })
-        )
+  for format in allFormats:
+    if tracks.len < 2:
+      t = none(JsonNode)
 
-  else :
-    for format in allFormats :
-      result.add ExFormatData(
-        title: format.resolution,
-        formatIdentifier: format.url
-      )
+    result.add ExFormatData(
+      title: format.resolution,
+      addictional: t,
+      format_identifier: format.url
+    )
+
+method subtitles(ex: HianimeEX; fmt: ExFormatData): Option[seq[MediaSubtitle]] =
+  if fmt.addictional.isNone:
+    return none(seq[MediaSubtitle])
+
+  var target: seq[MediaSubtitle]
+
+  for track in fmt.addictional.get:
+    if track.getOrDefault("label").isNil:
+      break
+    target.add MediaSubtitle(
+      title: track["label"].getStr,
+      url: track["file"].getStr
+    )
+
+  result = target.some
 
 method get*(ex: HianimeEX, data: ExFormatData) : MediaFormatData =
   let
     video = data.format_identifier
     headers = ex.header.some
-
-  if data.addictional.isSome :    
-    var subtitle = MediaSubtitle(url: data.addictional.get["subUrl"].getStr)
-    return MediaFormatData(
-      video: video,
-      subtitle: subtitle.some,
-      typeExt: extM3u8,
-      headers: headers,
-    )
-
-  result.video = video    
-  result.typeExt = extM3u8
-    
+  
+  return MediaFormatData(
+    video: video,
+    typeExt: extM3u8,
+    headers: headers,
+  )

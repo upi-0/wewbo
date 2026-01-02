@@ -26,12 +26,13 @@ proc setHeader(player: Player, header: MediaHttpHeader) =
       of "cookie"  :
         player.setCookie(val)
 
-proc watch*(player: Player, media: MediaFormatData) =
+proc watch*(player: Player, media: MediaFormatData, subtitle: Option[MediaSubtitle]) =
   if media.headers.isSome :
     player.setHeader(media.headers.get)
 
-  if media.subtitle.isSome :
-    player.setSubtitle(media.subtitle.get)
+  if subtitle.isSome :
+    player.setSubtitle(subtitle.get)
+
   case media.typeExt
   of extMp4 :
     player.watch_mp4(media)
@@ -41,6 +42,9 @@ proc watch*(player: Player, media: MediaFormatData) =
     raise newException(ValueError, "Not supported format.")
 
   discard player.execute() # Tar benerin lagi
+
+proc watch*(player: Player; media: MediaFormatData) =
+  watch(player, media, none(MediaSubtitle))
 
 export
   Player,

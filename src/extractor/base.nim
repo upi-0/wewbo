@@ -33,6 +33,62 @@ method get*(ex: BaseExtractor, data: EpisodeData) : string {.base.} = data.url
 method formats*(ex: BaseExtractor, url: string) : seq[ExFormatData] {.base.} = discard
 method get*(ex: BaseExtractor, data: ExFormatData) : MediaFormatData {.base.} = discard
 
+method subtitles*(ex: BaseExtractor; fmt: ExFormatData) : Option[seq[MediaSubtitle]] {.base.} = none(seq[MediaSubtitle])
+
+method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, fbe: FbExtractEpisodeFormats, fbs: FbExtractEpisodeSubtitles) : AllEpisodeFormats {.base.} = 
+  let
+    episodes = ex.episodes(animeUrl)
+
+  var
+    episodeTitle: seq[string]
+    episodeFormat: seq[MediaFormatData]
+    allFormat: seq[ExFormatData]
+    episodemed: MediaFormatData
+    res: MediaResolution
+    episodeUrl: string
+
+  var
+    sub = none(seq[MediaSubtitle])
+    sIndex: int = -1    
+    fIndex: int = -1
+
+  proc extractFormat(ept: EpisodeData) =
+    episodeUrl = ex.get(ept)
+    allFormat = ex.formats(episodeUrl)
+
+    if fIndex == -1:
+      fbe(fIndex, allFormat, ept.title)
+      res = allFormat[fIndex].title.detectResolution()
+
+    try:
+      assert allFormat[fIndex].title.detectResolution() == res
+      log.info("[$#] $#" % [ex.name, "Auto selecting format for: " & ept.title])
+
+      episodeMed = ex.get(allFormat[fIndex])
+      sub = ex.subtitles(allFormat[fIndex])
+
+      if sIndex == -1 and sub.isSome:
+        fbs(sIndex, sub.get, "Select Subtitle")
+        episodeMed.subtitle = sub.get[sIndex].some
+
+      elif sIndex >= -1 and sub.isSome:
+        episodeMed.subtitle = sub.get[sIndex].some
+
+      else:
+        discard        
+
+    except RangeDefect, IndexDefect, AssertionDefect:
+      fbe(fIndex, allFormat, ept.title)
+      episodeMed = ex.get(allFormat[fIndex])
+      
+    episodeFormat.add(episodemed)      
+
+  for ept in episodes:
+    episodeTitle.add(ept.title)
+    extractFormat(ept)
+
+  result = (titles: episodeTitle, formats: episodeFormat)    
+
 proc info*(ex: BaseExtractor, text: string) =
   ex.lg.info("[$#] $#" % [ex.name, text])
 

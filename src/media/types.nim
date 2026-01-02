@@ -1,6 +1,5 @@
-import std/[
-  options
-]
+import
+  options, ../ui/ask
 from ../utils import contains
 
 type  
@@ -9,7 +8,7 @@ type
     referer*: string
     cookie*: string
 
-  MediaSubtitle* = object of RootObj
+  MediaSubtitle* = ref object of Questionable
     url*: string
     lang*: string = ""
     target*: string = ""
@@ -23,7 +22,7 @@ type
   MediaFormatData* = object of RootObj
     video*: string
     typeExt*: MediaExt
-    subtitle*: Option[MediaSubtitle] = none(MediaSubtitle)
+    subtitle* : Option[MediaSubtitle] = none(MediaSubtitle)
     headers*: Option[MediaHttpHeader] = none(MediaHttpHeader)  
 
 proc detectResolution*(name: string) : MediaResolution =
