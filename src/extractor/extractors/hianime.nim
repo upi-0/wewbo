@@ -123,12 +123,16 @@ method formats*(ex: HianimeEX, url: string) : seq[ExFormatData] =
     )
     tracks = hlsInfo.getOrDefault("tracks")
     allFormats = m3u8Format.formats.sortByResolution()
-
+  
+  var t: Option[JsonNode] = some(tracks)
 
   for format in allFormats:
+    if tracks.len < 2:
+      t = none(JsonNode)
+
     result.add ExFormatData(
       title: format.resolution,
-      addictional: tracks.some,
+      addictional: t,
       format_identifier: format.url
     )
 
@@ -152,11 +156,9 @@ method get*(ex: HianimeEX, data: ExFormatData) : MediaFormatData =
   let
     video = data.format_identifier
     headers = ex.header.some
-
-  if data.addictional.isSome:    
-    return MediaFormatData(
-      video: video,
-      typeExt: extM3u8,
-      headers: headers,
-    )
-    
+  
+  return MediaFormatData(
+    video: video,
+    typeExt: extM3u8,
+    headers: headers,
+  )
