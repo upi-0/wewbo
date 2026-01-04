@@ -9,14 +9,18 @@ import
     hianime
   ]
 
-let sukamto: Table[string, proc(ex: var BaseExtractor) {.nimcall.}] = {
-  "pahe" : newAnimepahe,
-  "hime" : newHianime,
-  "kura" : newKuramanime,
-  "taku" : newOtakudesu
-}.toTable
+type
+  ExtractorInitProc = proc(ex: var BaseExtractor) {.gcsafe.}
 
-proc getExtractor(name: string): BaseExtractor = 
+proc getExtractor(name: string): BaseExtractor {.gcsafe.} = 
+    
+  let sukamto: Table[string, ExtractorInitProc] = {
+    "pahe" : (proc: ExtractorInitProc = newAnimepahe)(),
+    "hime" : newHianime,
+    "kura" : newKuramanime,
+    "taku" : newOtakudesu
+  }.toTable
+
   if not sukamto.hasKey(name) :
     raise newException(ValueError, "No source found: " & "'$#'" % [name]) 
   
