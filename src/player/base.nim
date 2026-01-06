@@ -32,6 +32,7 @@ proc watch*(player: Player, media: MediaFormatData) =
 
   if media.subtitle.isSome :
     player.setSubtitle(media.subtitle.get)
+    
   case media.typeExt
   of extMp4 :
     player.watch_mp4(media)
@@ -43,6 +44,7 @@ proc watch*(player: Player, media: MediaFormatData) =
   discard player.execute() # Tar benerin lagi
 
 export
+  SpecialLineProc,
   Player,
   MediaFormatData,
   MediaSubtitle,

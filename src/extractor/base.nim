@@ -12,7 +12,7 @@ import
   ]  
 
 import ../media/[types]
-import ../logger
+import ../tui/logger as l
 
 type
   BaseExtractor {.inheritable.} = ref object of RootObj
@@ -41,8 +41,8 @@ proc init*[T: BaseExtractor](
   proxy: string = "",
   userAgent: string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
   resolution: FormatResolution = best
-) {.gcsafe.} =
-  extractor.lg = newWewboLogger() # TODO: Jangan bikin logger baru.
+) =
+  extractor.lg = l.useWewboLogger(extractor.name)
   extractor.userAgent = userAgent
   extractor.connection = newHttpConnection(
     extractor.host,

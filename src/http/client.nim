@@ -11,6 +11,7 @@ import std/[
 ]
 import ../media/types
 import ./cache
+import ../tui/logger as tl
 
 type
   HttpConnection = ref object of RootObj
@@ -19,10 +20,10 @@ type
     headers*: HttpHeaders
     cache*: HttpCache
     ssl: SslContext
+    log: WewboLogger
 
-proc info(con: HttpConnection, text: string) {.gcsafe.} =
-  discard
-  # log.info("[HTTP] " & text)
+proc info(con: HttpConnection, text: string) =
+  con.log.info("[HTTP] " & text)
 
 proc ensureCACert(): string =
   let pemName = getAppDir() / "cacert.pem"
@@ -83,7 +84,8 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
     client: client,
     headers: headers,
     cache: HttpCache(),
-    ssl: context
+    ssl: context,
+    log: useWewboLogger(host)
   )
 
 proc newHttpConnection*(host: string, header: MediaHttpHeader) : HttpConnection =

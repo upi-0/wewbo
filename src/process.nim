@@ -5,19 +5,26 @@ import
   strutils,
   streams
 
+# import
+  # ./logger
+
 import
-  ./logger
+  ./tui/logger as tlog,
+  ./tui/base,
+  illwill
 
 type
   AfterExecuteProc = proc() {.nimcall.}
+  SpecialLineProc* = proc(line: string) : bool {.nimcall.}
 
   CliApplication = ref object of RootObj
     name*: string
     args*: seq[string]
     path: string
     process {.deprecated.}: Process
-    log*: WewboLogger
+    log: tlog.WewboLogger
     available*: bool = false
+    specialLogLine*: SpecialLineProc
 
   CliError* = enum
     erUnknown,
@@ -29,9 +36,13 @@ method failureHandler(app: CliApplication, context: CliError) {.base.} =
 proc check(app: CliApplication) : bool =
   findExe(app.path).len >= 1 or findExe(app.name).len >= 1
 
-proc setUp[T: CliApplication](app: T, path: string = app.name) : T =
+method specialLineCB(cli: CliApplication) : SpecialLineProc {.base.} =
+  (proc(x: string) : bool = x.contains("\r"))
+
+proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
   app.path = path
   app.available = app.check()
+  app.specialLogLine = app.specialLineCB()
   app.log = newWewboLogger(app.name)
 
   if not app.available :
@@ -45,6 +56,12 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
     outputBuffer: string
     stream: Stream = process.outputStream()
 
+  proc sendLog(line: string) =
+    if app.specialLogLine(line):
+      app.log.setLineBuffer(app.log.tb.height - 3, " " & line, bg=bgWhite, fg=fgBlack)
+    else:  
+      app.log.info(line)
+
   while true:
     if process.running():
       try:
@@ -53,7 +70,7 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
           outputBuffer &= available          
           let lines = outputBuffer.split('\n')
           for i in 0..<lines.len - 1:
-            app.log.info(lines[i])
+            sendLog(lines[i])
           outputBuffer = lines[^1]
       except:
         discard
@@ -66,12 +83,12 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
           outputBuffer &= remaining
           let lines = outputBuffer.split('\n')
           for line in lines:
-            app.log.info(line)
+            sendLog(line)
       except:
         discard
       
       checkup.sleep()
-      app.log.clear()
+      app.log.stop()
 
       return process.peekExitCode()  
 
