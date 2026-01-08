@@ -62,7 +62,7 @@ method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, fbe: FbExtract
 
     try:
       assert allFormat[fIndex].title.detectResolution() == res
-      log.info("[$#] $#" % [ex.name, "Auto selecting format for: " & ept.title])
+      ex.lg.info("[$#] $#" % [ex.name, "Auto selecting format for: " & ept.title])
 
       episodeMed = ex.get(allFormat[fIndex])
       sub = ex.subtitles(allFormat[fIndex])
