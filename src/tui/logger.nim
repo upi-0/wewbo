@@ -15,6 +15,11 @@ type
     content: seq[string],
   ]
 
+  WewboLogMode* = enum
+    mTui = "tui",
+    mEcho = "echo",
+    mSilent = "silent"
+
   WewboLogger* = ref object of WewboTUI
     name*: string
     height*: int
@@ -23,11 +28,26 @@ type
     bannerHeight*: int = 8
     konten*: Option[ContentPTR]
     saveLog: bool = false
+    mode: WewboLogMode
 
 let
   loga* = cast[ptr LogContainer](alloc0 sizeof LogContainer)
 
-proc newWewboLogger*(name: string; height = terminalHeight(); width = terminalWidth(); konten: Option[ContentPTR] = none(ContentPTR); saveLog: bool = false) : WewboLogger {.gcsafe.} =  
+func detectLogMode*(s: string) : WewboLogMode {.noSideEffect.} =
+  for mode in WewboLogMode:
+    if s == $mode:
+      return mode
+
+  return WewboLogMode.mTui
+
+proc newWewboLogger*(
+  name: string;
+  height = terminalHeight();
+  width = terminalWidth();
+  konten: Option[ContentPTR] = none(ContentPTR);
+  saveLog: bool = false;
+  mode: WewboLogMode = mEcho
+) : WewboLogger {.gcsafe.} =  
   result = WewboLogger(
     name: name,
     head: name,
@@ -35,21 +55,33 @@ proc newWewboLogger*(name: string; height = terminalHeight(); width = terminalWi
     height: height,
     tb: newTerminalBuffer(width, height),
     konten: konten,
-    saveLog: saveLog
+    saveLog: saveLog,
+    mode: mode
   )
 
   if saveLog:
     result.logs = newSeq[string](result.maxLen)
 
-  result.init()
-
-proc useWewboLogger*(name: string; height = terminalHeight(); width = terminalWidth()) : WewboLogger {.gcsafe.} =
+  case mode
+  of mTui:
+    result.init()
+  else:
+    discard  
+  
+proc useWewboLogger*(
+  name: string;
+  height = terminalHeight();
+  width = terminalWidth();
+  mode: WewboLogMode = mTui
+) : WewboLogger {.gcsafe.} =
   loga.logger.reset()
   loga.logger = newWewboLogger(
     name,
     height,
     width,
-    some(addr loga.content)
+    some(addr loga.content),
+    false,
+    mode
   )
   loga.logger
 
@@ -87,8 +119,14 @@ proc addLog(l: WewboLogger; text: string) {.inline.} =
 
 proc render(l: WewboLogger; text: string; textColor: illwill.ForeGroundColor = fgWhite) =
   l.addLog(text)
-  l.renderLogs()
-  l.tb.display()
+  case l.mode
+  of mTui:
+    l.renderLogs()
+    l.tb.display()
+  of mEcho:
+    echo text
+  of mSilent:
+    discard
 
 proc info*(l: WewboLogger, text: string) {.inline.} =
   l.render(text)
@@ -100,10 +138,10 @@ proc error*(l: WewboLogger, text: string) {.inline.} =
   l.render(text)
 
 proc stop*(l: WewboLogger; save: bool = false) =
-  assert l.konten.isNone
-
   if save:
     writeFile("wewbo.log", join(l.logz, "\n"))
 
   l.logAddress()[].reset()
-  l.clear()
+
+  if l.mode == mTui:
+    l.clear()
