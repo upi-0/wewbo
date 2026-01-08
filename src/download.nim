@@ -1,12 +1,11 @@
 import
-  logger,
   extractor/all,
+  tui/[logger, base],
   ui/ask,
   media/[downloader, types],
   terminal/paramarg
 
 from stream import askAnime
-from utils import exit
 
 var spami: string
 
@@ -19,6 +18,7 @@ proc download*(f: FullArgument) =
     palla = getExtractor(f["source"].getStr)
     anime = palla.askAnime(f.nargs[0])
     tdr = f["outdir"].getStr
+    log = newWewboLogger("Download")
     rijal = newFfmpegDownloader(
       outdir = if tdr != "": tdr else: anime.title
     )
@@ -46,7 +46,7 @@ proc download*(f: FullArgument) =
 
     try:
       assert allFormat[fInex].title.detectResolution() == res
-      log.info("[dl  ] auto select for " & spami)
+      log.info("[dl] auto select for " & spami)
       episodeMed = palla.get(allFormat[finex])
 
     except RangeDefect, IndexDefect, AssertionDefect:
@@ -61,4 +61,4 @@ proc download*(f: FullArgument) =
     extractFormat(ept)
 
   log.info($rijal.downloadAll(episodeFormat, episodeTitle))
-  exit(0)
+  log.close()

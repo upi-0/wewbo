@@ -1,21 +1,16 @@
-import logger
-import illwill
-import std/[
-  terminal,
-  os,
-  strutils,
-  json
-]
+import
+  illwill, terminal, os, strutils, json
+
 import ui/[
   ask,
   controller,
 ]
+
 import
   ./extractor/[all, types],
+  ./tui/[logger, base],
   ./player/all,
   ./terminal/paramarg
-
-from utils import exit
 
 proc setPlayer(playerName: string) : Player =
   var ple = playerName
@@ -59,7 +54,6 @@ proc stream*(title: string, extractorName: string, playerName: string) =
     anime = askAnime(extractor, title)
 
   except AnimeNotFoundError :
-    log.info "Failed to fetch anime from '$#' trying with 'pahe' instead" % [extractor.name]
     extractor = getExtractor("pahe")
     anime = askAnime(extractor, title)
 
@@ -73,11 +67,14 @@ proc stream*(title: string, extractorName: string, playerName: string) =
   )  
 
 proc stream*(f: FullArgument) =
+  let log = useWewboLogger("Streaming")
+
   try :
     let
       exName = f["source"].getStr()
       plName = f["player"].getStr()
       title = f.nargs[0]
+
     stream(title, exName, plName)
 
   except IndexDefect :
@@ -89,4 +86,4 @@ proc stream*(f: FullArgument) =
     log.info("This Program will close automaticly in 3 Seconds")
     sleep(3000)
 
-  exit(0)
+  log.close()
