@@ -1,6 +1,6 @@
 import
   extractor/all,
-  tui/[logger, base],
+  tui/logger,
   ui/ask,
   media/[types, downloader],
   terminal/paramarg
@@ -17,45 +17,16 @@ proc setSubtitle(subtitleIndex: var int, values: seq[MediaSubtitle], spami: stri
 
 proc download*(f: FullArgument) =
   let
+    log = newWewboLogger("Downloading")
     palla = getExtractor(f["source"].getStr)
     anime = palla.askAnime(f.nargs[0])
     tdr = f["outdir"].getStr
-    log = newWewboLogger("Download")
-    rijal = newFfmpegDownloader(
-      outdir = if tdr != "": tdr else: anime.title
-    )
+    rijal = newFfmpegDownloader(outdir = if tdr != "": tdr else: anime.title)
 
   let        
-    animeUrl = palla.get anime
-    episodes = palla.episodes(animeUrl)
-
-  var
-    episodeTitle: seq[string]
-    episodeFormat: seq[MediaFormatData]
-    allFormat: seq[ExFormatData]
-    episodeMed: MediaFormatData
-    res: MediaResolution
-    episodeUrl: string
-    fInex: int = -1
-
-  proc extractFormat(ept: EpisodeData) =
-    episodeUrl = palla.get(ept)
-    allFormat = palla.formats(episodeUrl)
-
-    if fInex == -1 :
-      fInex.setFormat(allFormat)
-      res = allFormat[fInex].title.detectResolution()
-
-    try:
-      assert allFormat[fInex].title.detectResolution() == res
-      log.info("[dl] auto select for " & spami)
-      episodeMed = palla.get(allFormat[finex])
-
-    except RangeDefect, IndexDefect, AssertionDefect:
-      finex.setFormat(allFormat)
-      episodeMed = palla.get(allFormat[finex])
-      
-    episodeFormat.add(episodeMed)
+    animeUrl = palla.get(anime)
+    episodes = palla.getAllEpisodeFormats(animeUrl, setFormat, setSubtitle)
+    outputCode = rijal.downloadAll(episodes.formats, episodes.titles)
 
   for (title, code) in zip(episodes.titles, outputCode) :
     log.info("[INFO] Inspecting")
