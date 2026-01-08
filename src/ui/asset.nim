@@ -14,10 +14,20 @@ proc renderBanner*(tb: var TerminalBuffer) =
 
 proc renderBanner*(tb: var TerminalBuffer, termWidth: int) {.deprecated.} = renderBanner(tb)  
 
+proc crop(tb: var TerminalBuffer; text: var string) =
+  if text.len >= tb.width - 8:
+    text = text[0 .. tb.width - 2 - 8]
+    text &= "..."
+
+  text = text.replace("\r", "")
+  text.stripLineEnd()
+
 proc renderTopBorder*(tb: var TerminalBuffer, yPos: int, title: string = "Rijal Ke Sukabumi") =
+  var pageInfo = " $# " % [title]
+  tb.crop(pageInfo)
+  
   let
     termWidth = tb.width
-    pageInfo = " $# " % [title]
     leftPad = (termWidth - pageInfo.len - 2) div 2
     rightPad = termWidth - pageInfo.len - leftPad - 2
 

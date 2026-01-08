@@ -31,16 +31,19 @@ proc main_controller_loop(
 ) = 
   var
     actions: seq[Action]
+    episode: EpisodeData
+
+  var
     idx = start_index
     pler = player
+
+  let    
     seAction = Action(title: "Select Resolution & Play", val: selectAndPlay)
     ceAction = Action(title: "Change Episode", val: changeEpisode)
     cpAction = Action(title: "Change Player", val: changePlayer)
     exitAction = Action(title: "Exit", val: exit)
     nextAction = Action(title: "Next Episode", val: nextEpisode)
     prevAction = Action(title: "Prev Episode", val: prevEpisode)
-
-    episode: EpisodeData
 
   while true :
     episode = episodes[idx]

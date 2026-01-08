@@ -12,7 +12,7 @@ import
   ]  
 
 import ../media/[types]
-import ../logger
+import ../tui/logger as l
 
 type
   BaseExtractor {.inheritable.} = ref object of RootObj
@@ -24,7 +24,7 @@ type
     lg*: WewboLogger
     initialized: bool = false
 
-method animes*(ex: BaseExtractor, title: string) : seq[AnimeData] {.base.} = discard
+method animes*(ex: BaseExtractor, title: string) : seq[AnimeData] {.base, gcsafe.} = discard
 method get*(ex: BaseExtractor, data: AnimeData) : string {.base.} = data.url
 
 method episodes*(ex: BaseExtractor, url: string) : seq[EpisodeData] {.base.} = discard
@@ -98,7 +98,7 @@ proc init*[T: BaseExtractor](
   userAgent: string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
   resolution: FormatResolution = best
 ) =
-  extractor.lg = log
+  extractor.lg = l.useWewboLogger(extractor.name)
   extractor.userAgent = userAgent
   extractor.connection = newHttpConnection(
     extractor.host,

@@ -84,4 +84,4 @@ proc error*(l: WewboLogger, text: string) =
   l.logs.add(text)
   l.render(fgRed)
 
-var log* = newWewboLogger()
+var log* {.deprecated.} = newWewboLogger()

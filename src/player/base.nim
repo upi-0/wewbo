@@ -47,6 +47,7 @@ proc watch*(player: Player; media: MediaFormatData) =
   watch(player, media, none(MediaSubtitle))
 
 export
+  SpecialLineProc,
   Player,
   MediaFormatData,
   MediaSubtitle,

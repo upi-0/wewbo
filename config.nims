@@ -5,6 +5,7 @@ discard """
 from macros import error
 
 switch("outdir", "build")
+switch("define", "useMalloc")
 
 const
   nimVersion = (major: NimMajor, minor: NimMinor, patch: NimPatch)

@@ -1,5 +1,5 @@
 import ../base
-from strutils import `%`, join
+from strutils import `%`, join, contains
 
 type
   MpvPL {.final.} = ref object of Player
@@ -7,6 +7,9 @@ type
 
 proc generateHeader(mpv: MpvPL, ky, val: string) {.inline.} =
   mpv.headerString &= "$#:$#," % [ky, val]   
+
+method specialLineCB(mpv: MpvPL) : SpecialLineProc =
+  return (proc(line: string) : bool = line.contains("AV"))
 
 method setUserAgent(mpv: MpvPL, val: string) {.inline.} =
   mpv.args.add "--user-agent=" & val

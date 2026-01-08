@@ -11,8 +11,7 @@ import std/[
 ]
 import ../media/types
 import ./cache
-
-from ../logger import log, info
+import ../tui/logger as tl
 
 type
   HttpConnection = ref object of RootObj
@@ -21,9 +20,10 @@ type
     headers*: HttpHeaders
     cache*: HttpCache
     ssl: SslContext
+    log: WewboLogger
 
 proc info(con: HttpConnection, text: string) =
-  log.info("[HTTP] " & text)
+  con.log.info("[HTTP] " & text)
 
 proc ensureCACert(): string =
   let pemName = getAppDir() / "cacert.pem"
@@ -36,7 +36,6 @@ proc ensureCACert(): string =
     context = newContext(verifyMode = CVerifyNone)
     client = newHttpClient(sslContext = context)
 
-  log.info("[HTTP] Get cert.pem")
   pemName.writeFile(client.getContent(url))
   client.close()
 
@@ -85,7 +84,8 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
     client: client,
     headers: headers,
     cache: HttpCache(),
-    ssl: context
+    ssl: context,
+    log: useWewboLogger(host)
   )
 
 proc newHttpConnection*(host: string, header: MediaHttpHeader) : HttpConnection =
@@ -182,7 +182,7 @@ proc req*(
   host: string = "",
   payload: string = "",
   useCache: bool = true
-): Response =
+): Response {.gcsafe.} =
   var
     content: Response
     url = connection.normalize_url url
@@ -220,7 +220,7 @@ proc req*(
   host: string = "",
   payload: JsonNode = %*{},
   useCache: bool = true
-): Response =
+): Response {.gcsafe.} =
   req(connection, url, mthod, save_cookie, host, $payload, useCache)
 
 export HttpConnection, Response, HttpMethod
