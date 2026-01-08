@@ -5,9 +5,6 @@ import
   strutils,
   streams
 
-# import
-  # ./logger
-
 import
   ./tui/logger as tlog,
   ./tui/base,
@@ -15,7 +12,7 @@ import
 
 type
   AfterExecuteProc = proc() {.nimcall.}
-  SpecialLineProc* = proc(line: string) : bool {.nimcall.}
+  SpecialLineProc* = proc(line: string) : bool {.gcsafe, nimcall.}
 
   CliApplication = ref object of RootObj
     name*: string
@@ -51,42 +48,57 @@ proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
 
   app    
 
-proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int =
+proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int {.gcsafe.} =
+  let
+    isLinux = defined(linux)
+
   var
     outputBuffer: string
-    stream: Stream = process.outputStream()
+    lines: seq[string]
+    stream: Stream = process.peekableOutputStream()
 
-  proc sendLog(line: string) =
+  proc sendLog(line: string) =    
     if app.specialLogLine(line):
-      app.log.setLineBuffer(app.log.tb.height - 3, " " & line, bg=bgWhite, fg=fgBlack)
-    else:  
+      # Linux doesn't fully support this feature.
+      # There may be issues related to this in the future.
+
+      if not isLinux:
+        app.log.setLineBuffer(app.log.tb.height - 3, " " & line, bg=bgWhite, fg=fgBlack)
+    
+    elif line != "":  
       app.log.info(line)
+
+  proc handleOutputBufferWin(strm: Stream; place: var string) =
+    let allOutputLog = strm.readAll()
+
+    if allOutputLog.len > 0:
+      place &= allOutputLog
+      lines = place.split("\n")
+
+      for line in lines:
+        sendLog(line)
+      
+      place = lines[^1]
+      lines.reset()
+
+  proc handleOutputBufferLinux(strm: Stream; place: var string) =
+    if stream.readLine(place):
+      sendLog(place)
+
+  proc handleOutputBuffer(strm: Stream; place: var string) =
+    try:
+      if isLinux: strm.handleOutputBufferLinux(place)
+      else: strm.handleOutputBufferWin(place)
+    except:
+      discard # Jangan males napa lu ah  
 
   while true:
     if process.running():
-      try:
-        let available = stream.readAll()
-        if available.len > 0:
-          outputBuffer &= available          
-          let lines = outputBuffer.split('\n')
-          for i in 0..<lines.len - 1:
-            sendLog(lines[i])
-          outputBuffer = lines[^1]
-      except:
-        discard
+      stream.handleOutputBuffer(outputBuffer)
+      checkup.sleep()
       
-      sleep(checkup)
     else:
-      try:
-        let remaining = stream.readAll()
-        if remaining.len > 0:
-          outputBuffer &= remaining
-          let lines = outputBuffer.split('\n')
-          for line in lines:
-            sendLog(line)
-      except:
-        discard
-      
+      stream.handleOutputBuffer(outputBuffer)
       checkup.sleep()
       app.log.stop()
 

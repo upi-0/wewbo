@@ -7,8 +7,6 @@ import
 import
   player/all
 
-from utils import exit
-
 const sourceHelp = "Select Source [kura|pahe|hime|taku]"
 
 proc listAvailablePlayers*(n: FullArgument) =
@@ -42,4 +40,3 @@ let app = [
 
 echo "wewbo " & ver
 app.start()
-exit(0)
