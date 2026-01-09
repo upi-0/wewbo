@@ -10,11 +10,14 @@ import
     hianime
   ]
 
+import
+  ../tui/logger
+
 type
   ExtractorInitProc = proc(ex: var BaseExtractor) {.gcsafe.}
 
-proc getExtractor(name: string): BaseExtractor {.gcsafe.} = 
-    
+proc getExtractor(name: string, mode: string = "tui"): BaseExtractor {.gcsafe.} = 
+
   let sukamto: Table[string, ExtractorInitProc] = {
     "pahe" : (proc: ExtractorInitProc = newAnimepahe)(),
     "hime" : newHianime,
@@ -26,7 +29,9 @@ proc getExtractor(name: string): BaseExtractor {.gcsafe.} =
     raise newException(ValueError, "No source found: " & "'$#'" % [name]) 
   
   sukamto[name](result)
-  result.init()
+  result.init(
+    logMode=detectLogMode(mode)
+  )
 
 export
   BaseExtractor,

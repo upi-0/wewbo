@@ -41,7 +41,7 @@ proc ensureCACert(): string =
 
   return pemName
 
-proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode)): HttpConnection =
+proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode), mode: WewboLogMode = mTui): HttpConnection =
   var
     accept: array[5, string] = [
       "text/html,application/xhtml+xml,application/xml",
@@ -85,17 +85,17 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
     headers: headers,
     cache: HttpCache(),
     ssl: context,
-    log: useWewboLogger(host)
+    log: useWewboLogger(host, mode=mode)
   )
 
-proc newHttpConnection*(host: string, header: MediaHttpHeader) : HttpConnection =
+proc newHttpConnection*(host: string, header: MediaHttpHeader, mode: WewboLogMode = mTui) : HttpConnection =
   var goblok = newJObject()
   
   for ky, val in header.fieldPairs() :
     if ky != "" and val != "" and ky != "userAgent":
       goblok.add(ky, val.newJString)
 
-  newHttpConnection(host, header.userAgent, goblok.some)  
+  newHttpConnection(host, header.userAgent, goblok.some, mode)  
 
 proc normalize_url*(connection: HttpConnection, url: string): string =
   var

@@ -96,14 +96,16 @@ proc init*[T: BaseExtractor](
   extractor: T,
   proxy: string = "",
   userAgent: string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
-  resolution: FormatResolution = best
+  resolution: FormatResolution = best,
+  logMode: WewboLogMode = mTui
 ) =
-  extractor.lg = l.useWewboLogger(extractor.name)
+  extractor.lg = l.useWewboLogger(extractor.name, mode=logMode)
   extractor.userAgent = userAgent
   extractor.connection = newHttpConnection(
     extractor.host,
     userAgent,
     extractor.http_headers,
+    mode=logMode
   )
   extractor.initialized = true
 
