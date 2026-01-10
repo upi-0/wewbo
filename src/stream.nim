@@ -22,13 +22,13 @@ proc setPlayer(playerName: string) : Player =
 
   getPlayer(ple)    
 
-proc askAnime*(ex: BaseExtractor, title: string) : AnimeData {.raises: [AnimeNotFoundError, Exception].} =
+proc askAnime*(ex: BaseExtractor, title: string) : AnimeData {.deprecated.} =
   var listAnime = ex.animes(title)
   if listAnime.len < 1 :
     raise newException(AnimeNotFoundError, "No Anime Found")
   return listAnime.ask()
 
-proc askEpisode(ex: BaseExtractor, ad: AnimeData) : tuple[index: int, episodes: seq[EpisodeData]] {.raises: [EpisodeNotFoundError, Exception].} =
+proc askEpisode(ex: BaseExtractor, ad: AnimeData) : tuple[index: int, episodes: seq[EpisodeData]] {.deprecated.} =
   var
     index: int
     episode: EpisodeData
