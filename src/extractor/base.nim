@@ -12,7 +12,7 @@ import
   ]  
 
 import ../media/[types]
-import ../tui/logger as l
+import ../tui/logger
 
 type
   BaseExtractor {.inheritable.} = ref object of RootObj
@@ -99,7 +99,7 @@ proc init*[T: BaseExtractor](
   resolution: FormatResolution = best,
   logMode: WewboLogMode = mTui
 ) =
-  extractor.lg = l.useWewboLogger(extractor.name, mode=logMode)
+  extractor.lg = useWewboLogger(extractor.name, mode=logMode)
   extractor.userAgent = userAgent
   extractor.connection = newHttpConnection(
     extractor.host,
@@ -121,10 +121,12 @@ proc main_els*(extractor: BaseExtractor, url: string, query: string) : seq[XmlNo
     .to_selector()
     .select(query)
 
-proc close*(extractor: var BaseExtractor) =
+proc close*(extractor: BaseExtractor) =
   extractor.lg.stop()
   extractor.connection.close()
-  extractor.reset()
+
+  extractor.lg = nil
+  extractor.connection = nil
 
 export
   WewboLogger,
