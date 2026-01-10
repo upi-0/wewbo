@@ -224,3 +224,7 @@ proc req*(
   req(connection, url, mthod, save_cookie, host, $payload, useCache)
 
 export HttpConnection, Response, HttpMethod
+
+proc close*(connection: HttpConnection) =
+  connection.log.stop()
+  connection.client.close()

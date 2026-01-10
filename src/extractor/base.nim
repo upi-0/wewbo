@@ -121,6 +121,11 @@ proc main_els*(extractor: BaseExtractor, url: string, query: string) : seq[XmlNo
     .to_selector()
     .select(query)
 
+proc close*(extractor: var BaseExtractor) =
+  extractor.lg.stop()
+  extractor.connection.close()
+  extractor.reset()
+
 export
   WewboLogger,
   info
