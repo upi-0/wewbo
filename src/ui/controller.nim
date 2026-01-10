@@ -4,8 +4,7 @@ import
 import
   ./ask,
   ../extractor/all,
-  ../player/all,
-  ../media/types
+  ../player/all
 
 from httpclient import close
 from illwill import illwillDeinit
@@ -18,16 +17,18 @@ type
     changeEpisode,
     selectAndPlay,
     changePlayer,
+    changeSource
 
   Action = ref object of Questionable
     val: ControllerAction
 
-proc main_controller_loop(
+proc controller_loop(
   extractor: BaseExtractor,
   player: PLayer,
   episodes: seq[EpisodeData],
   start_index: int = 0,
   direct: bool = false,
+  requestChangeExtractor: var bool
 ) = 
   var
     actions: seq[Action]
@@ -41,11 +42,12 @@ proc main_controller_loop(
     seAction = Action(title: "Select Resolution & Play", val: selectAndPlay)
     ceAction = Action(title: "Change Episode", val: changeEpisode)
     cpAction = Action(title: "Change Player", val: changePlayer)
+    csAction = Action(title: "Change Source", val: changeSource)
     exitAction = Action(title: "Exit", val: exit)
     nextAction = Action(title: "Next Episode", val: nextEpisode)
     prevAction = Action(title: "Prev Episode", val: prevEpisode)
 
-  while true :
+  while true:
     episode = episodes[idx]
     actions = @[]
 
@@ -56,7 +58,8 @@ proc main_controller_loop(
       actions.add prevAction
     actions.add ceAction
     actions.add cpAction
-    actions.add exitAction      
+    actions.add csAction
+    actions.add exitAction
 
     case actions.ask(title = episode.title).val:
       of exit:
@@ -100,5 +103,40 @@ proc main_controller_loop(
         pler = getPlayer(bentar.ask(title="Select Title").title)
         continue
 
-export 
-  main_controller_loop
+      of changeSource:
+        requestChangeExtractor = true
+        return
+
+proc main_controller_loop*(
+  extractor: BaseExtractor,
+  player: PLayer,
+  episodes: seq[EpisodeData],
+  start_index: int = 0,
+  direct: bool = false,
+) {.deprecated.} = 
+  var
+    rijal: bool = false
+
+  controller_loop(extractor, player, episodes, start_index, false, rijal)
+
+proc main_controller_loop*(
+  title: string;
+  extractor: BaseExtractor;
+  player: Player;
+) =
+  var
+    rijal = false
+    ex = extractor
+
+  proc to_controller =
+    var
+      animeData = extractor.ask(title)
+      (start_idx, episodes) = extractor.ask(animeData)
+
+    controller_loop(extractor, player, episodes, start_idx, false, rijal)
+
+  while true:
+    if rijal:
+      ex = getExtractor("taku")
+
+    to_controller()  
