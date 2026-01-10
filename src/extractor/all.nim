@@ -24,6 +24,9 @@ const sukamto: Table[string, ExtractorInitProc] = {
   "taku" : newOtakudesu
 }.toTable
 
+proc listExtractor*() : seq[string] {.gcsafe.} =
+  for k in sukamto.keys: result.add(k)
+
 proc getExtractor(name: string, mode: string = "tui"): BaseExtractor {.gcsafe.} = 
 
   if not sukamto.hasKey(name) :

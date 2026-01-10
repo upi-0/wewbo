@@ -240,6 +240,11 @@ proc req*(
 
 export HttpConnection, Response, HttpMethod
 
-proc close*(connection: HttpConnection) =
+proc close*(connection: HttpConnection) =  
+  # Stop
   connection.log.stop()
   connection.client.close()
+
+  # Set to nill
+  connection.log = nil
+  connection.client = nil
