@@ -3,9 +3,8 @@ import
 
 import
   ./ask,
-  ../extractor/all,
-  ../player/all,
-  ../media/types
+  ../extractor/[all, base],
+  ../player/all
 
 from httpclient import close
 from illwill import illwillDeinit
@@ -18,16 +17,21 @@ type
     changeEpisode,
     selectAndPlay,
     changePlayer,
+    changeSource
 
   Action = ref object of Questionable
     val: ControllerAction
 
-proc main_controller_loop(
+  ExtractorQuestionable = ref object of Questionable
+    val: string    
+
+proc controller_loop(
   extractor: BaseExtractor,
   player: PLayer,
   episodes: seq[EpisodeData],
   start_index: int = 0,
   direct: bool = false,
+  requestChangeExtractor: var bool
 ) = 
   var
     actions: seq[Action]
@@ -41,11 +45,12 @@ proc main_controller_loop(
     seAction = Action(title: "Select Resolution & Play", val: selectAndPlay)
     ceAction = Action(title: "Change Episode", val: changeEpisode)
     cpAction = Action(title: "Change Player", val: changePlayer)
+    # csAction = Action(title: "Change Source", val: changeSource) || Kayanya ga skarang deh~
     exitAction = Action(title: "Exit", val: exit)
     nextAction = Action(title: "Next Episode", val: nextEpisode)
     prevAction = Action(title: "Prev Episode", val: prevEpisode)
 
-  while true :
+  while true:
     episode = episodes[idx]
     actions = @[]
 
@@ -56,7 +61,8 @@ proc main_controller_loop(
       actions.add prevAction
     actions.add ceAction
     actions.add cpAction
-    actions.add exitAction      
+    # actions.add csAction
+    actions.add exitAction
 
     case actions.ask(title = episode.title).val:
       of exit:
@@ -100,5 +106,62 @@ proc main_controller_loop(
         pler = getPlayer(bentar.ask(title="Select Title").title)
         continue
 
-export 
-  main_controller_loop
+      of changeSource:
+        requestChangeExtractor = true
+        return
+
+proc extractors() : seq[ExtractorQuestionable] =
+  for eks in listExtractor():
+    result.add(
+      ExtractorQuestionable(title: eks, val: eks)
+    )
+
+proc main_controller_loop*(
+  extractor: BaseExtractor,
+  player: PLayer,
+  episodes: seq[EpisodeData],
+  start_index: int = 0,
+  direct: bool = false,
+) {.deprecated.} = 
+  var
+    rijal: bool = false
+
+  controller_loop(extractor, player, episodes, start_index, false, rijal)
+
+proc main_controller_loop*(
+  title: string;
+  extractor: BaseExtractor;
+  player: Player;
+  animeDataOpt: Option[AnimeData] = none(AnimeData)
+) =
+  let
+    anDataOpt = addr animeDataOpt
+
+  var
+    rijal = false
+    ex = extractor
+
+  var    
+    start_idx: int
+    episodes: seq[EpisodeData]
+    animedata: AnimeData    
+
+  proc to_controller =
+    if anDataOpt[].isSome:
+      animedata = anDataOpt[].get
+
+    else:
+      animedata = ex.ask(title)
+    
+    (start_idx, episodes) = ex.ask(animedata)
+    controller_loop(ex, player, episodes, start_idx, false, rijal)
+    
+  while true:
+    if rijal:
+      ex.close()
+      anDataOpt[] = none(AnimeData)
+      ex = getExtractor(
+        extractors().ask(title="Select new source.").val
+      )
+
+    to_controller()  
