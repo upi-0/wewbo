@@ -72,7 +72,7 @@ wewbo -s:hime -p:mpv "demon slayer"
 ## Install
 ### Scoop
 ```bash
-scoop install https://raw.github.com/upi-0/wewbo/main/wewbo.json
+scoop install https://github.com/upi-0/wewbo/releases/latest/download/wewbo.json
 ```
 ### Nim
 ```bash
