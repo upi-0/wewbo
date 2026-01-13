@@ -19,8 +19,11 @@ proc setSubtitle(subtitleIndex: var int, values: seq[MediaSubtitle], spami: stri
 proc download*(f: FullArgument) =
   proc getIndex(container: seq[string], target: int, def: int) : int =
     try:
-      result = container[target].parseInt()
-    except IndexDefect:
+      if container[target] == "":
+        result = -1        
+      else: 
+        result = container[target].parseInt()
+    except IndexDefect, ValueError:
       result = def
 
   let
@@ -45,7 +48,8 @@ proc download*(f: FullArgument) =
 
   let
     animeUrl = palla.get(anime)
-    episodes = palla.getAllEpisodeFormats(animeUrl, setFormat, setSubtitle, selectedEpisodeStart, selectedEpisodeEnd)
+    fallback: FallbackEpisodes = (episodeFormats: setFormat, episodeSubtitles: setSubtitle)
+    episodes = palla.getAllEpisodeFormats(animeUrl, selectedEpisodeStart, selectedEpisodeEnd, fallback)
     outputCode = rijal.downloadAll(episodes.formats, episodes.titles)
 
   for (title, code) in zip(episodes.titles, outputCode) :

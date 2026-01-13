@@ -30,6 +30,10 @@ type
 type
   FbExtractEpisodeFormats* = proc(fIndex: var int; formats: seq[ExFormatData]; spami: string = "")
   FbExtractEpisodeSubtitles* = proc(sIndex: var int; subtitles: seq[MediaSubtitle]; spami: string = "")
+  FallbackEpisodes* = tuple[
+    episodeFormats: FbExtractEpisodeFormats,
+    episodeSubtitles: FbExtractEpisodeSubtitles
+  ]
 
 # Exceptions
 type

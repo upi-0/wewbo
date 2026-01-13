@@ -35,7 +35,7 @@ method get*(ex: BaseExtractor, data: ExFormatData) : MediaFormatData {.base.} = 
 
 method subtitles*(ex: BaseExtractor; fmt: ExFormatData) : Option[seq[MediaSubtitle]] {.base.} = none(seq[MediaSubtitle])
 
-method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, fbe: FbExtractEpisodeFormats, fbs: FbExtractEpisodeSubtitles, s: int = -1; e: int = -1) : AllEpisodeFormats {.base.} = 
+method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, s: int = -1; e: int = -1, fb: FallbackEpisodes) : AllEpisodeFormats {.base.} = 
   
   proc normalizeIndex(ss: int; dd: int; max: int) : HSlice[int, int] {.gcsafe.} =
     var
@@ -74,7 +74,7 @@ method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, fbe: FbExtract
     allFormat = ex.formats(episodeUrl)
 
     if fIndex == -1:
-      fbe(fIndex, allFormat, ept.title)
+      fb.episodeFormats(fIndex, allFormat, ept.title)
       res = allFormat[fIndex].title.detectResolution()
 
     try:
@@ -85,7 +85,7 @@ method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, fbe: FbExtract
       sub = ex.subtitles(allFormat[fIndex])
 
       if sIndex == -1 and sub.isSome:
-        fbs(sIndex, sub.get, "Select Subtitle")
+        fb.episodeSubtitles(sIndex, sub.get, "Select Subtitle")
         episodeMed.subtitle = sub.get[sIndex].some
 
       elif sIndex >= -1 and sub.isSome:
@@ -95,7 +95,7 @@ method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, fbe: FbExtract
         discard        
 
     except RangeDefect, IndexDefect, AssertionDefect:
-      fbe(fIndex, allFormat, ept.title)
+      fb.episodeFormats(fIndex, allFormat, ept.title)
       episodeMed = ex.get(allFormat[fIndex])
       
     episodeFormat.add(episodemed)      
