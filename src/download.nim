@@ -17,6 +17,25 @@ proc setSubtitle(subtitleIndex: var int, values: seq[MediaSubtitle], spami: stri
   subtitleIndex = values.find(values.ask(title=spami))
 
 proc download*(f: FullArgument) =
+  proc normalizeIndex(ss: int; dd: int) : FbNormalizeIndex =
+    proc normalizeIndexRezult(max: int) : HSlice[int, int]=
+      var
+        sz = ss
+        dz = dd
+
+      if dd == -1:
+        dz = max      
+      if ss == -1:
+        sz = 1
+      if dd == 0:
+        dz = sz      
+      if sz > max:
+        raise newException(ValueError, "Invalid Index.")
+      
+      return sz - 1 .. dz - 1
+
+    return normalizeIndexRezult
+
   proc getIndex(container: seq[string], target: int, def: int) : int =
     try:
       if container[target] == "":
@@ -40,6 +59,13 @@ proc download*(f: FullArgument) =
     selectedEpisodeEnd = episodeIdx.getIndex(1, 0)
 
   let
+    fallback: FallbackEpisodes = (
+      episodeFormats: setFormat,
+      episodeSubtitles: setSubtitle,
+      normalizeIndex: normalizeIndex(selectedEpisodeStart, selectedEpisodeEnd)
+    )
+
+  let
     log = newWewboLogger("Downloading")
     palla = getExtractor(f["source"].getStr)
     anime = palla.askAnime(f.nargs[0])
@@ -48,7 +74,6 @@ proc download*(f: FullArgument) =
 
   let
     animeUrl = palla.get(anime)
-    fallback: FallbackEpisodes = (episodeFormats: setFormat, episodeSubtitles: setSubtitle)
     episodes = palla.getAllEpisodeFormats(animeUrl, selectedEpisodeStart, selectedEpisodeEnd, fallback)
     outputCode = rijal.downloadAll(episodes.formats, episodes.titles)
 

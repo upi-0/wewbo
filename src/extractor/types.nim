@@ -30,9 +30,11 @@ type
 type
   FbExtractEpisodeFormats* = proc(fIndex: var int; formats: seq[ExFormatData]; spami: string = "")
   FbExtractEpisodeSubtitles* = proc(sIndex: var int; subtitles: seq[MediaSubtitle]; spami: string = "")
+  FbNormalizeIndex* = proc(max: int) : HSlice[int, int] {.gcsafe.}
   FallbackEpisodes* = tuple[
     episodeFormats: FbExtractEpisodeFormats,
-    episodeSubtitles: FbExtractEpisodeSubtitles
+    episodeSubtitles: FbExtractEpisodeSubtitles,
+    normalizeIndex: FbNormalizeIndex 
   ]
 
 # Exceptions
