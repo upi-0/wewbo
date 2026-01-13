@@ -138,10 +138,11 @@ proc error*(l: WewboLogger, text: string) {.inline.} =
   l.render(text)
 
 proc stop*(l: WewboLogger; save: bool = false) =
+  if l.mode == mTui:
+    l.clear()
+
   if save:
     writeFile("wewbo.log", join(l.logz, "\n"))
 
-  l.logAddress()[].reset()
-
-  if l.mode == mTui:
-    l.clear()
+  if l.konten.isNone:
+    l.logAddress()[].reset()

@@ -20,7 +20,14 @@ type
     headers*: HttpHeaders
     cache*: HttpCache
     ssl: SslContext
-    log: WewboLogger
+    log*: WewboLogger
+  
+  HttpLocalData* = tuple[
+    context: Option[SslContext] = none(SslContext)
+  ]
+
+let
+  cptr = cast[ptr HttpLocalData](alloc0 sizeof HttpLocalData)
 
 proc info(con: HttpConnection, text: string) =
   con.log.info("[HTTP] " & text)
@@ -40,6 +47,15 @@ proc ensureCACert(): string =
   client.close()
 
   return pemName
+
+proc generataContext(): SslContext =
+  if cptr.context.isNone:
+    result = newContext(caFile = ensureCACert())
+    cptr.context = result.some
+
+  else:
+    result = cptr.context.get    
+
 
 proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode), mode: WewboLogMode = mTui): HttpConnection =
   var
@@ -71,8 +87,7 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
   base_headers.add(("Host", host))
 
   let
-    caFile = ensureCACert()
-    context = newContext(caFile = caFile)
+    context = generataContext()
     headers = newHttpHeaders(base_headers)
     client = newHttpClient(
       headers = headers,
@@ -196,7 +211,7 @@ proc req*(
   save_cookie: bool = true,
   host: string = "",
   payload: string = "",
-  useCache: bool = true
+  useCache: bool = false
 ): Response {.gcsafe.} =
   var
     content: Response
@@ -234,8 +249,17 @@ proc req*(
   save_cookie: bool = true,
   host: string = "",
   payload: JsonNode = %*{},
-  useCache: bool = true
+  useCache: bool = false
 ): Response {.gcsafe.} =
   req(connection, url, mthod, save_cookie, host, $payload, useCache)
 
 export HttpConnection, Response, HttpMethod
+
+proc close*(connection: HttpConnection) =  
+  # Stop
+  connection.log.stop()
+  connection.client.close()
+
+  # Set to nill
+  connection.log = nil
+  connection.client = nil
