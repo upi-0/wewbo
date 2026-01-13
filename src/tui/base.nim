@@ -1,6 +1,8 @@
 import
   illwill, strutils, terminal
 
+import ../version  
+
 type
   WewboTUI* = ref object of RootObj
     tb*: TerminalBuffer
@@ -64,7 +66,7 @@ proc renderBorder(tui: WewboTUI) =
   tui.tb.write(tui.tb.width - 1, y2, fg, "╝")
 
   # Easter EGG
-  tui.tb.write(0, tui.tb.height - 1, fgWhite, "Bau pesing anjir")
+  tui.tb.write(0, tui.tb.height - 1, fgWhite, "upi-0/wewbo " & ver)
 
 proc add*(tui: WewboTUI; text: string; fg: illwill.ForegroundColor) =
   tui.tb.write(2, tui.currentY, fg, text)

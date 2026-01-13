@@ -5,7 +5,6 @@ import
   media/[types, downloader],
   terminal/paramarg
 
-from stream import askAnime
 from sequtils import zip
 from strutils import split, parseInt, contains
 
@@ -68,7 +67,7 @@ proc download*(f: FullArgument) =
   let
     log = newWewboLogger("Downloading")
     palla = getExtractor(f["source"].getStr)
-    anime = palla.askAnime(f.nargs[0])
+    anime = palla.ask(f.nargs[0])
     tdr = f["outdir"].getStr
     rijal = newFfmpegDownloader(outdir = if tdr != "": tdr else: anime.title)
 

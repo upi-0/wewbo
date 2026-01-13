@@ -1,5 +1,5 @@
 import
-  illwill, terminal, os, strutils, json, malebolgia, options
+  os, strutils, json, malebolgia, options
 
 import ui/[
   ask,
@@ -24,28 +24,6 @@ proc setPlayer(playerName: string) : Player =
     else : ple = "ffplay"
 
   getPlayer(ple)    
-
-proc askAnime*(ex: BaseExtractor, title: string) : AnimeData {.deprecated.} =
-  var listAnime = ex.animes(title)
-  if listAnime.len < 1 :
-    raise newException(AnimeNotFoundError, "No Anime Found")
-  return listAnime.ask()
-
-proc askEpisode(ex: BaseExtractor, ad: AnimeData) : tuple[index: int, episodes: seq[EpisodeData]] {.deprecated.} =
-  var
-    index: int
-    episode: EpisodeData
-  let
-    animeUrl = ex.get(ad)
-    listEpisode = ex.episodes(animeUrl)
-
-  if listEpisode.len < 1 :
-    raise newException(EpisodeNotFoundError, "No Episode Found")
-
-  episode = listEpisode.ask()
-  index = listEpisode.find(episode)
-
-  return (index: index, episodes: listEpisode)
 
 proc searchAll(title: string; sources: seq[string] = @["pahe", "hime"]) : Content {.gcsafe.} =
   proc checkSource =
