@@ -146,21 +146,36 @@ proc jsonToForm*(j: JsonNode): string =
 proc reqq*(client: HttpClient, url: string, mthod: HttpMethod, payload: string, host: string = ""): Response =
   var
     newHeader: seq[(string, string)]
-
+  
   if host.len > 0:
     newHeader.add(("Host", host))
 
-  if newHeader.len > 0:
-    result = client.request(
-        url, mthod,
-        body = payload,
-        headers = newHttpHeaders(newHeader)
-      )
+  let
+    withPayload = payload != "" and payload != "{}"
+    withHeader = newHeader.len > 0
 
-  else:
+  if withHeader and withPayload:
     result = client.request(
       url, mthod,
       body = payload,
+      headers = newHttpHeaders(newHeader)
+    )
+
+  elif not withHeader and withPayload:
+    result = client.request(
+      url, mthod,
+      body = payload,
+    )
+
+  elif withHeader and not withPayload:
+    result = client.request(
+      url, mthod,
+      headers = newHttpHeaders(newHeader)
+    )         
+
+  elif not withHeader and not withPayload:
+    result = client.request(
+      url, mthod
     )
 
 proc extractCookie(cookies: string, cookie: string) : string =
