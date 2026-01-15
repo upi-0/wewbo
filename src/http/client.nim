@@ -32,10 +32,11 @@ let
 proc info(con: HttpConnection, text: string) =
   con.log.info("[HTTP] " & text)
 
-proc ensureCACert(): string =
-  let pemName = getAppDir() / "cacert.pem"
+proc ensureCACert(log: WewboLogger): string =
+  let pemName = getTempDir() / "wewbo-cacert.pem"
 
   if fileExists(pemName):
+    log.info("[cert] Use existing cert file.")
     return pemName
   
   const url = "https://curl.se/ca/cacert.pem"
@@ -49,13 +50,17 @@ proc ensureCACert(): string =
   return pemName
 
 proc generataContext(): SslContext =
+  let
+    log = useWewboLogger("SSL Context")
+
   if cptr.context.isNone:
-    result = newContext(caFile = ensureCACert())
+    log.info("[cert] Generate new context.")
+    result = newContext(caFile = ensureCACert(log))
     cptr.context = result.some
 
   else:
-    result = cptr.context.get    
-
+    log.info("Use existing context.")
+    result = cptr.context.get   
 
 proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode), mode: WewboLogMode = mTui): HttpConnection =
   var
