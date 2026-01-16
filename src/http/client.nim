@@ -99,7 +99,7 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
       sslContext = context
     )
 
-  return HttpConnection(
+  result = HttpConnection(
     host: host,
     client: client,
     headers: headers,
@@ -107,6 +107,7 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
     ssl: context,
     log: useWewboLogger(host, mode=mode)
   )
+  result.info("HEADERS: " & $base_headers)
 
 proc newHttpConnection*(host: string, header: MediaHttpHeader, mode: WewboLogMode = mTui) : HttpConnection =
   var goblok = newJObject()

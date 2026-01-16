@@ -1,5 +1,5 @@
 import
-  os, strutils, json, malebolgia, options
+  os, strutils, json, malebolgia, options, random
 
 import ui/[
   ask,
@@ -8,7 +8,7 @@ import ui/[
 
 import
   ./extractor/[all, base, types],
-  ./tui/[logger, base],
+  ./tui/logger,
   ./player/all,
   ./terminal/paramarg
 
@@ -33,6 +33,7 @@ proc searchAll(title: string; sources: seq[string] = @["pahe", "hime"]) : Conten
         raise newException(ValueError, "Invalid Source: '$#'" % [source])
 
   proc mengontol(exName: string; title: string) : seq[AnimeData] =
+    sleep rand 100  
     var
       ex = getExtractor(exName, "silent")
       re = ex.animes(title)
@@ -104,7 +105,7 @@ proc stream*(f: FullArgument) =
     raise newException(ValueError, "Try: `wewbo [Anime Title]`")
 
   let
-    log = useWewboLogger("Streaming", mode=mTui)
+    log = useWewboLogger("Streaming", mode=mSilent)
     exName = f["source"].getStr()
     plName = f["player"].getStr()
     title = f.nargs[0]
