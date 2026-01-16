@@ -1,6 +1,7 @@
 import
+  os,
   extractor/[all, types],
-  tui/logger,
+  tui/[base, logger],
   ui/ask,
   media/[types, downloader],
   terminal/paramarg
@@ -76,10 +77,13 @@ proc download*(f: FullArgument) =
     episodes = palla.getAllEpisodeFormats(animeUrl, selectedEpisodeStart, selectedEpisodeEnd, fallback)
     outputCode = rijal.downloadAll(episodes.formats, episodes.titles)
 
-  for (title, code) in zip(episodes.titles, outputCode) :
-    log.info("[INFO] Inspecting")
+  log.info("[INFO] Inspecting")
 
+  for (title, code) in zip(episodes.titles, outputCode) :
     if code < 1:
       log.info("[INFO] Success downloading: " & title)
     else:
       log.warn("[WARN] Failed downloading: " & title)
+
+  sleep(3_000)  
+  log.close()
