@@ -45,7 +45,8 @@ proc main* =
     app.start()
   
   except ref Exception:
-    loga.logger.close()
+    if not loga.logger.isNil:
+      loga.logger.close()
     
     echo "wewbo " & ver
     echo "ERROR: " & getCurrentExceptionMsg()
