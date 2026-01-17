@@ -22,16 +22,24 @@ import
   ../tui/logger
 
 type
+  FfmpegDownloaderOption* = tuple[
+    crf: int = 28,
+    fps: int = 25,
+    sub: bool = true,
+  ]    
+
   FfmpegDownloader = ref object of CliApplication
     outdir*: string
     targetExt: string = "mp4"
-    crf: int = 28
-    fps: int = 25
-    itr: int = 0
-    sub: bool = true
+    options: FfmpegDownloaderOption
 
-proc newFfmpegDownloader*(outdir: string; withSub: bool = true) : FfmpegDownloader =
-  FfmpegDownloader(name: "ffmpeg", outdir: outdir, sub: withSub).setUp()
+    crf {.deprecated.}: int = 28
+    fps {.deprecated.}: int = 25
+    itr {.deprecated.}: int = 0
+    sub {.deprecated.}: bool = true
+
+proc newFfmpegDownloader*(outdir: string; options: FfmpegDownloaderOption) : FfmpegDownloader =
+  result = FfmpegDownloader(name: "ffmpeg", outdir: outdir, options: options).setUp()
 
 method failureHandler(ffmpeg: FfmpegDownloader, context: CLiError) =
   raise newException(ValueError, "ffmpeg is not detected on your system.")
@@ -61,11 +69,11 @@ proc setGatauIniApa(ffmpeg: FfmpegDownloader) =
 
   # Crf
   ffmpeg.addArg "-crf"
-  ffmpeg.addArg $ffmpeg.crf
+  ffmpeg.addArg $ffmpeg.options.crf
 
   # Fps
   ffmpeg.addArg "-r"
-  ffmpeg.addArg $ffmpeg.fps
+  ffmpeg.addArg $ffmpeg.options.fps
 
 proc setInput(ffmpeg: FfmpegDownloader, media: MediaFormatData) =
   ffmpeg.addArg "-i"
@@ -106,7 +114,7 @@ proc handleSubtite(ffmpeg: FfmpegDownloader, media: MediaFormatData) =
 proc deleteTempFile {.nimcall.} = removeFile("wewbo_sub_file.ass")
 
 proc download*(ffmpeg: FfmpegDownloader, input: MediaFormatData, output: string) : int =
-  if input.subtitle.isSome and ffmpeg.sub:
+  if input.subtitle.isSome and ffmpeg.options.sub:
     ffmpeg.log.info("Extracting subtitle.")
     ffmpeg.setUpHeader(input.headers)
     ffmpeg.handleSubtite(input)
