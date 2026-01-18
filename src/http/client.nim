@@ -23,7 +23,8 @@ type
     log*: WewboLogger
   
   HttpLocalData* = tuple[
-    context: Option[SslContext] = none(SslContext)
+    context: Option[SslContext] = none(SslContext),
+    logMode: WewboLogMode = mSilent
   ]
 
 let
@@ -51,7 +52,7 @@ proc ensureCACert(log: WewboLogger): string =
 
 proc generataContext(): SslContext =
   let
-    log = useWewboLogger("SSL Context")
+    log = useWewboLogger("SSL Context", mode=cptr.logMode)
 
   if cptr.context.isNone:
     log.info("[cert] Generate new context.")
@@ -90,6 +91,7 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
 
   base_headers.add(("Accept", join(accept, ";")))
   base_headers.add(("Host", host))
+  cptr.logMode = mode
 
   let
     context = generataContext()
