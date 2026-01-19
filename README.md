@@ -104,6 +104,9 @@ nim c src/wewbo
 - [x] Batch Downloader (v0.8)
 - [x] Concurrently Searching (v0.9)
 - [ ] Cleaned TUI (v0.9.5)
+- [ ] Fix all known bugs (v1)
+- [ ] Soft Sub translator (v1.1)
+- [ ] Load external extractor lib (v1.2)
 
 ---
 
