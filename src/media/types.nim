@@ -8,10 +8,14 @@ type
     referer*: string
     cookie*: string
 
+  MediaSubtitleExt* = enum
+    sUnkown, sAss, sVtt
+
   MediaSubtitle* = ref object of Questionable
     url*: string
     lang*: string = ""
     target*: string = ""
+    ext*: MediaSubtitleExt = sUnkown
 
   MediaExt* = enum
     extNone, extMp4, extM3u8

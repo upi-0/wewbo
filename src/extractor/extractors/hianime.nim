@@ -5,7 +5,10 @@ import options
 
 import ../base
 import ../../utils
-import ../../media/extractHls
+import ../../media/[
+  types,
+  extractHls
+]
 import ../../http/[
   client,
   response
@@ -29,9 +32,9 @@ proc newHianime*(extractor: var BaseExtractor) =
   extractor = HianimeEX(
     name: "hime",
     host: "hianime.to",
-    http_headers: some(%*{
+    http_headers: some %*{
       "Referer" : "https://hianime.to/"
-    })
+    }
   )
 
 method animes*(ex: HianimeEX, title: string = "") : seq[AnimeData] =
@@ -147,7 +150,8 @@ method subtitles(ex: HianimeEX; fmt: ExFormatData): Option[seq[MediaSubtitle]] =
       break
     target.add MediaSubtitle(
       title: track["label"].getStr,
-      url: track["file"].getStr
+      url: track["file"].getStr,
+      ext: sVtt
     )
 
   result = target.some
