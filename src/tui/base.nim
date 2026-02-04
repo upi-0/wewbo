@@ -10,7 +10,7 @@ type
     maxLen*: int
     head*: string = "Di Israel ada pisang keju?"
     content*: seq[string]
-    currentY*: int
+    currentY* : int
 
 proc renderBanner(tui: WewboTUI) =
   let x = (tui.tb.width - 36) div 2 # Find the center cordinate
@@ -92,8 +92,10 @@ proc setLine*(tui: WewboTUI; y: int; content: string; clear: bool = true; displa
   tui.setLineBuffer(tui.currentY + y, content, clear, display, crop, fg, bg)
 
 proc clear*(tui: WewboTUI) =
-  for y in tui.currentY .. tui.maxLen:
-    tui.setLineBuffer(y, "", fg=fgRed, bg=bgBlack)
+  for y in 0 .. terminalHeight():
+    tui.setLineBuffer(y, "", fg=fgRed, bg=bgBlack, display=false)
+
+  tui.tb.display()    
 
 proc init*(tui: WewboTUI) =
   proc close() {.noconv.} =
@@ -119,8 +121,10 @@ proc close*(tui: WewboTUI) =
   eraseScreen()
   showCursor()
 
-proc newWewboTUI*(init: bool = true) : WewboTUI =
+proc newWewboTUI*(head: string = ""; init: bool = true) : WewboTUI =
   result = WewboTUI(
-    tb: newTerminalBuffer(terminalWidth(), terminalHeight())
+    tb: newTerminalBuffer(terminalWidth(), terminalHeight()),
+    head: head
   )
   result.init()  
+
