@@ -78,23 +78,35 @@ proc stream*(title: string, extractorName: string, playerName: string, log: Wewb
   var
     extractor: BaseExtractor
     ad: AnimeData
+
+  var    
+    anTitle: string = title
+    exName: string = extractorName    
     adOpt: Option[AnimeData] = none(AnimeData)
 
-  if extractorName.contains(","):
+  # Usage for "wewbo 'Anime Title:source'"
+  if title.contains(":"):
+    for ex in listExtractor():
+      if title.contains(ex) and title.endsWith(ex):
+        exName = title.split(":")[^1]
+        anTitle = title.replace(exName)[0 ..< ^1]
+
+  # Usage for "wewbo 'Anime Title' -s:source1,source2"
+  if exName.contains(","):
     log.warn("You are currently using experemintal feature of conc searching.")
     log.warn("This action may cause memory leaks.")
 
     (extractor, ad) = searchAll(
-      title,
-      extractorName.split(",")
+      anTitle,
+      exName.split(",")
     )
     adOpt = ad.some
 
   else:
-    extractor = extractorName.getExtractor()
+    extractor = exName.getExtractor()
 
   main_controller_loop(
-    title,
+    anTitle,
     extractor,
     player,
     adOpt
