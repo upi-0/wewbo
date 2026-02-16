@@ -74,22 +74,12 @@ proc searchAll(title: string; sources: seq[string] = @["pahe", "hime"]) : Conten
 proc stream*(title: string, extractorName: string, playerName: string, log: WewboLogger) =
   let
     player = playerName.setPlayer()
+    (anTitle, exName) = parseTitleAndSource(title, extractorName)     
 
   var
     extractor: BaseExtractor
     ad: AnimeData
-
-  var    
-    anTitle: string = title
-    exName: string = extractorName    
     adOpt: Option[AnimeData] = none(AnimeData)
-
-  # Usage for "wewbo 'Anime Title:source'"
-  if title.contains(":"):
-    for ex in listExtractor():
-      if title.contains(ex) and title.endsWith(ex):
-        exName = title.split(":")[^1]
-        anTitle = title.replace(exName)[0 ..< ^1]
 
   # Usage for "wewbo 'Anime Title' -s:source1,source2"
   if exName.contains(","):
