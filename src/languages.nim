@@ -1,5 +1,5 @@
 import
-  ui/ask, strutils
+  tui/ask, strutils
 
 type
   Languages* = enum

@@ -1,14 +1,10 @@
 import
   os, strutils, json, malebolgia, options, random
 
-import ui/[
-  ask,
-  controller,
-]
-
 import
+  ./ui/controller,
   ./extractor/[all, base, types],
-  ./tui/logger,
+  ./tui/[ask, logger],
   ./player/all,
   ./terminal/paramarg
 
@@ -62,7 +58,7 @@ proc searchAll(title: string; sources: seq[string] = @["pahe", "hime"]) : Conten
       animeIndex.add(sconte)
 
   let
-    animeData = animeIndex.ask(init=false, deInit=false)
+    animeData = animeIndex.ask()
     exName = exIndex[animeIndex.find(animeData)]
     extractor = getExtractor(exName)
 

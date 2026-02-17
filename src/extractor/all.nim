@@ -11,8 +11,7 @@ import
   ]
 
 import
-  ../ui/ask,
-  ../tui/logger
+  ../tui/[ask, logger]
 
 type
   ExtractorInitProc = proc(ex: var BaseExtractor) {.gcsafe.}

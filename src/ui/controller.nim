@@ -2,8 +2,8 @@ import
   terminal, options
 
 import
-  ./ask,
   ../extractor/[all, base],
+  ../tui/ask,
   ../player/all
 
 from httpclient import close

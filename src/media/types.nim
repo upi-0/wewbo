@@ -1,5 +1,5 @@
 import
-  options, ../ui/ask
+  options, ../tui/ask
 from ../utils import contains
 
 type  
