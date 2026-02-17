@@ -7,8 +7,11 @@ type
 proc putEnum*(plate: var OptionJson; val: openArray[string]; key: string): void {.inline.} =
   plate[key] = %val
 
-proc put*(plate: var OptionJson; val, key: string) : void {.inline.} =
+proc put*(plate: var OptionJson; val, key: string): void {.inline.} =
   plate[key] = %val
+
+proc putBool*(plate: var OptionJson; key: string): void {.inline.} =
+  plate.putEnum(["True", "False"], key)
 
 proc putRange*(plate: var OptionJson; sn, bp: int; key: string; default: int = sn) : void {.inline.} =
   var s: seq[string]
@@ -21,21 +24,20 @@ proc putRange*(plate: var OptionJson; sn, bp: int; key: string; default: int = s
 proc s*(plate: OptionJson): string =
   plate.getStr()
 
-proc n*(plate: OptionJson; default: int = 0) : int =
-  try:
-    plate.getStr().parseInt()
-  except:
-    default
+proc n*(plate: OptionJson; default: int = 0): int =
+  plate.getInt()
+
+proc b*(plate: OptionJson): bool =
+  plate.getStr() == "True"
 
 export
   OptionJson
 
 export  
-  put, putEnum, putRange
+  put, putEnum, putRange, newJObject
   
 when isMainModule:
   discard """
-  import tui/ask
   var opt: OptionJson = newJObject()
 
   opt.put("default", "api")
@@ -47,20 +49,31 @@ when isMainModule:
   echo opt["api"].s
   echo opt["player"].s
   echo opt["fps"].n
-  """
 
-  discard """
-  type Rijal = ref object of RootObj
-    nama: string
-    umur: int
-    opt: OptionJson = newJObject()
+  import
+    tui/ask, terminal
+
+  type
+    RijalOpt = ref tuple[status, hitam, nama: string]
+      
+    Rijal = ref object of RootObj
+      nama: string
+      umur: int
+      opt: OptionJson = newJObject()
+      oops: RijalOpt    
 
   proc newRijal() : Rijal =
     result = Rijal()
     result.opt.put("-", "nama")
     result.opt.putEnum(["On", "Off"], "status")
     result.opt.putRange(0, 100, "hitam", 50)
+    result.opt.putBool("verbose")
 
   let rijal = newRijal()
-  rijal.opt.ask()
+  
+  rijal.opt.ask()  
+  eraseScreen()
+
+  echo rijal.opt["verbose"].b
   """
+
