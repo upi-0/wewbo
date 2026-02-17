@@ -1,5 +1,5 @@
 import
-  os, illwill, sequtils, json, sugar
+  os, illwill, sequtils, json, sugar, tables, strutils
 
 import
   base,
@@ -10,6 +10,13 @@ import
 
 import
   ../opt
+
+proc `[]`*[T: Questionable](inputs: openArray[T]; key: string): T =
+  for input in inputs:
+    if input.title == key:
+      return input
+
+  raise newException(ValueError, "Value not found: '$#'" % key)
 
 proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") : T {.gcsafe.} =
   let 
@@ -64,6 +71,14 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
       renderItems()
 
     sleep(20)
+
+proc putEnum*[T: Questionable](plate: var OptionJson; inputs: seq[T]; key: string): void =
+  var res: seq[string]
+  
+  for input in inputs:
+    res.add(input.title)
+
+  plate.putEnum(res, key)  
 
 proc ask*(plate: var OptionJson; title: string = "Select Option"): void =
   var cont: seq[OptionValuedQuestionable]

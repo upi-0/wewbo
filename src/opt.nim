@@ -1,5 +1,5 @@
 import
-  json, strutils
+  json
 
 type
   OptionJson* = JsonNode
@@ -34,10 +34,10 @@ export
   OptionJson
 
 export  
-  put, putEnum, putRange, newJObject
+  put, putEnum, putRange, newJObject, `[]`
   
 when isMainModule:
-  discard """
+  import tui/ask, terminal
   var opt: OptionJson = newJObject()
 
   opt.put("default", "api")
@@ -49,9 +49,6 @@ when isMainModule:
   echo opt["api"].s
   echo opt["player"].s
   echo opt["fps"].n
-
-  import
-    tui/ask, terminal
 
   type
     RijalOpt = ref tuple[status, hitam, nama: string]
@@ -75,5 +72,4 @@ when isMainModule:
   eraseScreen()
 
   echo rijal.opt["verbose"].b
-  """
 

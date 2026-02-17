@@ -8,8 +8,12 @@ method handleExceptionKey*(currentItem: Questionable; page: WewboTUI; key: Key) 
   discard
 
 method renderItem*(item: Questionable; tui: WewboTUI; is_selected: bool; row: int) : void {.base, gcsafe.} =
-  var bg: BackgroundColor = if is_selected: bgGreen else: bgBlack
-  tui.setLine(row, " " & item.title, display=false, bg=bg)    
+  var
+    bg = if is_selected: bgGreen else: bgBlack
+    fg = if is_selected: fgBlack else: fgWhite
+    pref = if is_selected: "► " else: "  "
+
+  tui.setLine(row, pref & item.title, display=false, bg=bg, fg=fg)    
 
 export
   base, illwill
