@@ -1,5 +1,5 @@
 import
-  ui/ask, strutils
+  tui/ask, strutils
 
 type
   Languages* = enum
@@ -38,20 +38,20 @@ type
   Language* = ref object of Questionable
     value: Languages
     countryCode: string
-  
 
-proc getCountryMetadata(lang: Languages) : array[2, string] =
+
+proc getCountryMetadata(lang: Languages): array[2, string] =
   let
     saga = $lang
     sega = saga.split(",")
-  
+
   result[0] = sega[0]
   result[1] = sega[1]
 
-proc getCountryCode*(lang: Languages) : string =
+proc getCountryCode*(lang: Languages): string =
   result = lang.getCountryMetadata()[1]
 
-proc getCountryName*(lang: Languages) : string =
+proc getCountryName*(lang: Languages): string =
   result = lang.getCountryMetadata()[0]
 
 proc listLang*: seq[Language] {.gcsafe.} =
@@ -62,7 +62,10 @@ proc listLang*: seq[Language] {.gcsafe.} =
       countryCode: a.getCountryCode()
     )
 
-proc getLang*(lang: string) : Languages =
+proc getValue*(lang: Language): Languages =
+  return lang.value
+
+proc getLang*(lang: string): Languages =
   for la in Languages:
     if lang == $la:
       return la

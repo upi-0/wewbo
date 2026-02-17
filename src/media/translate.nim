@@ -36,7 +36,7 @@ proc merge(chunk: ChunkedLineContent; place: var seq[string]) =
       .replace("&lt;/b&gt;")
       .replace("&lt;b&gt;")
 
-proc translateVTTV2(subtitle: MediaSubtitle; header: MediaHttpHeader; targetLang: Languages; mode: WewboLogMode = mTui) {.gcsafe.} =
+proc translateVTTV2*(subtitle: MediaSubtitle; header: MediaHttpHeader; targetLang: Languages; mode: WewboLogMode = mTui) {.gcsafe.} =
   let
     log = useWewboLogger("Subtitle Translator", mode = mode)  
     tll = getTranslator("google", targetLang, mode = mode)
