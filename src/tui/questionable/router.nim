@@ -8,12 +8,14 @@ type
   RouteActionProc* = proc(prevRoute: Route): void {.gcsafe, closure.}
 
   RouteAction* = ref object of Questionable
-    action*: RouteActionProc    
+    action*: RouteActionProc
+    data*: string
 
   Route* = ref object of RootObj
     title*: string
     actions*: seq[RouteAction]
     logger*: WewboLogger    
+    data*: string
 
 method setColour(item: RouteAction; is_current: bool) : tuple[bg: BackgroundColor; fg: ForegroundColor] =
   result.bg = if is_current: bgGreen else: bgBlack
