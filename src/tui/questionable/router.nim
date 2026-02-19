@@ -11,6 +11,8 @@ type
     action*: RouteActionProc
     data*: string
 
+  RouteActionError* = object of CatchableError
+
   Route* = ref object of RootObj
     title*: string
     actions*: seq[RouteAction]
