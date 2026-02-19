@@ -8,10 +8,11 @@ import
   ../extractor/[all, base],
   ../player/all,
   ../media/translate,
-  ../languages
+  ../languages 
 
 from httpclient import close
 from illwill import illwillDeinit
+from std/envvars import getEnv
 
 type
   ControllerAction = enum
@@ -116,13 +117,15 @@ proc controller_loop(
           subtitles = extractor.subtitles(format)
 
         if subtitles.isSome:
-          var translateOption = newJObject()
+          var
+            translateOption = newJObject()
+            translatorOption = (apiKey: "", model: "")
 
-          translateOption.putEnum(["indonesian,id", "french,fr", "vietnamese,vi"], "targetLang")
-          translateOption.putEnum(subtitles.get, "sourceSub")
-          translateOption.putEnum(["google", "gemini", "openai"], "provider")
-          translateOption.put("-", "apiKey")
-          translateOption.ask()
+          block setTranslateOption:
+            translateOption.putEnum(["indonesian,id", "french,fr", "vietnamese,vi"], "targetLang")
+            translateOption.putEnum(subtitles.get, "sourceSub")
+            translateOption.putEnum(["google", "gemini", "openai"], "provider")
+            translateOption.ask()
 
           let
             subtitle = subtitles.get[translateOption["sourceSub"].s]
@@ -130,7 +133,14 @@ proc controller_loop(
 
           # Auto-translate the subtitle
           if media_format.headers.isSome:
-            subtitle.translateVTTV2(media_format.headers.get, targetLang)
+            translatorOption.apiKey = getEnv("WBTL_API_KEY", "")
+            subtitle.translateSubtitle(
+              media_format.headers.get,
+              targetLang,
+              translatorOption = translatorOption.some,
+              translatorName = translateOption["provider"].s,
+              chunkLen = 7 # Sementara jangan di otak-atik jir
+            )
 
           pler.watch(media_format, subtitle.some)
         else:

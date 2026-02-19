@@ -36,10 +36,18 @@ proc merge(chunk: ChunkedLineContent; place: var seq[string]) =
       .replace("&lt;/b&gt;")
       .replace("&lt;b&gt;")
 
-proc translateVTTV2*(subtitle: MediaSubtitle; header: MediaHttpHeader; targetLang: Languages; mode: WewboLogMode = mTui) {.gcsafe.} =
+proc translateSubtitle*(
+  subtitle: MediaSubtitle;
+  header: MediaHttpHeader;
+  targetLang: Languages;
+  mode: WewboLogMode = mTui;
+  translatorOption: Option[AITranslatorOption] = none(AITranslatorOption);
+  translatorName: string = "google";
+  chunkLen: int = 5
+) {.gcsafe.} =
   let
     log = useWewboLogger("Subtitle Translator", mode = mode)  
-    tll = getTranslator("google", targetLang, mode = mode)
+    tll = getTranslator(translatorName, targetLang, opt=translatorOption, mode=mode)
     net = newHttpConnection("mgstatics.xyz", header, mode = mode)
 
   var
@@ -76,7 +84,7 @@ proc translateVTTV2*(subtitle: MediaSubtitle; header: MediaHttpHeader; targetLan
 
     idx.reset() 
   
-  proc realTranslate(input: seq[LineContent]; chunkLen: int = 5): seq[ChunkedLineContent] =
+  proc realTranslate(input: seq[LineContent]): seq[ChunkedLineContent] =
     let
       rijal = input.distribute(chunkLen)
       seperator = " ||| "
@@ -146,7 +154,7 @@ when isMainModule:
 
   let dea = subs.get[1]
 
-  dea.translateVTTV2(meta.headers.get, laId)
+  dea.translateSubtitle(meta.headers.get, laId)
   player.watch(meta, some dea)
 
   # writeFile("deket.vtt", subs.get[0].translateVTTV2(meta.headers.get, laSu))
