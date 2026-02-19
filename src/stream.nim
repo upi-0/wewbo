@@ -98,7 +98,7 @@ proc stream*(title: string, extractorName: string, playerName: string, log: Wewb
     adOpt
   )
 
-proc stream*(f: FullArgument) =
+proc stream*(f: FullArgument) {.gcsafe.} =
   if f.nargs.len < 1:
     raise newException(ValueError, "Try: `wewbo [Anime Title]`")
 
