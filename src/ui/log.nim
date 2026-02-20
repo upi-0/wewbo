@@ -1,3 +1,4 @@
+{.deprecated.}
 import pkg/illwill
 import ./asset
 import std/[
