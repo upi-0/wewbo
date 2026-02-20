@@ -5,21 +5,22 @@ import
   ../logger, ../ask
 
 type
-  RouteActionProc* = proc(prevRoute: Route): void {.gcsafe, closure.}
+  RouteActionProc*[T] = proc(prevRoute: Route[T]): void {.gcsafe.}
 
-  RouteAction* = ref object of Questionable
-    action*: RouteActionProc
+  RouteAction*[T] = ref object of Questionable
+    action*: RouteActionProc[T]
     data*: string
 
   RouteActionError* = object of CatchableError
 
-  Route* = ref object of RootObj
+  Route*[T] = ref object of RootObj
     title*: string
-    actions*: seq[RouteAction]
+    actions*: seq[RouteAction[T]]
     logger*: WewboLogger    
     data*: string
+    session*: ptr T
 
-method setColour(item: RouteAction; is_current: bool) : tuple[bg: BackgroundColor; fg: ForegroundColor] =
+proc setColour*(item: RouteAction; is_current: bool) : tuple[bg: BackgroundColor; fg: ForegroundColor] =
   result.bg = if is_current: bgGreen else: bgBlack
   result.fg = if is_current: fgBlack else: fgWhite
 
