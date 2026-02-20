@@ -5,6 +5,9 @@ type
   MpvPL {.final.} = ref object of Player
     headerString: string = ""
 
+proc newMpvPlayer*(basePlayer: var Player): void {.gcsafe.} =
+  basePlayer = MpvPL(name: "mpv")
+
 proc generateHeader(mpv: MpvPL, ky, val: string) {.inline.} =
   mpv.headerString &= "$#:$#," % [ky, val]   
 

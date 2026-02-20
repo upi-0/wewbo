@@ -11,7 +11,7 @@ import
   illwill
 
 type
-  AfterExecuteProc = proc() {.nimcall.}
+  AfterExecuteProc = proc() {.gcsafe, nimcall.}
   SpecialLineProc* = proc(line: string) : bool {.gcsafe, nimcall.}
 
   CliApplication = ref object of RootObj
@@ -27,13 +27,13 @@ type
     erUnknown,
     erCommandNotFound,
 
-method failureHandler(app: CliApplication, context: CliError) {.base.} =
+method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
   discard
 
 proc check(app: CliApplication) : bool =
   findExe(app.path).len >= 1 or findExe(app.name).len >= 1
 
-method specialLineCB(cli: CliApplication) : SpecialLineProc {.base.} =
+method specialLineCB(cli: CliApplication) : SpecialLineProc {.gcsafe, base.} =
   (proc(x: string) : bool = x.contains("\r"))
 
 proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
@@ -48,7 +48,7 @@ proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
 
   app    
 
-proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int {.gcsafe.} =  
+proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int =  
   let
     isLinux = defined(linux)
     processLogger = newWewboLogger(message)
