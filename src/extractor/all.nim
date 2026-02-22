@@ -8,7 +8,8 @@ import
     animepahe,
     kuramanime,
     otakudesu,
-    hianime
+    hianime,
+    test
   ]
 
 import
@@ -21,7 +22,8 @@ const sukamto: Table[string, ExtractorInitProc] = {
   "pahe" : (proc: ExtractorInitProc = newAnimepahe)(),
   "hime" : newHianime,
   "kura" : newKuramanime,
-  "taku" : newOtakudesu
+  "taku" : newOtakudesu,
+  "test" : newTest,
 }.toTable
 
 proc listExtractor*() : seq[string] {.gcsafe.} =
