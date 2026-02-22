@@ -113,7 +113,7 @@ proc parseStyle(text: string): tuple[text: string, style: WewboLogStyle] =
 
   (text: text, style: WEWBO_DEFAULT_STYLE)
 
-proc renderLogs(l: WewboLogger) =
+proc renderLogs*(l: WewboLogger) =
   let
     mf = l.logz
 

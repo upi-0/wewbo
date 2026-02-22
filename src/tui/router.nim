@@ -3,11 +3,10 @@ import
   logger, ask
 
 from strutils import `%`
-from sequtils import toSeq
 from marshal import
   `$$`,
   to
-
+  
 proc start*[T](route: Route[T]): void =
   route.actions.add RouteAction[T](title: "Back")
 
@@ -25,21 +24,51 @@ proc start*[T](route: Route[T]): void =
     except RouteActionError:
       route.logger.error("[$#] $#" % [route.logger.name, getCurrentExceptionMsg()])
 
-  block closeDirectly:
-    route.session[].reset()
-
 proc raiseError*[T: RouteActionError](route: Route; error: typedesc[T]; message: string): void =
   raise newException(error, message)
 
-proc creteSession*[T: tuple](terlaluLama: Route[T]; defaultValue: T = T.default): void {.inline.} =
+proc setSession*[T: tuple](terlaluLama: Route[T]; defaultValue: T = T.default): void =
   terlaluLama.session = cast[ptr T](alloc0 sizeof T)
   terlaluLama.session[] = defaultValue
 
-proc action*[T](title: string, action: RouteActionProc[T]; data: string = ""): RouteAction[T] {.inline.} =
+proc setSession*[T: tuple](terlaluDekat: Route[T]; sessionPonter: ptr T): void {.inline.} =
+  terlaluDekat.session = sessionPonter
+
+proc destroySession*[T](route: Route[T]): void =
+  route.session[].reset()
+  route.session.reset()
+
+proc resetSession*[T: tuple](route: Route[T]): void =
+  route.destroySession()
+  route.setSession()
+
+proc action*[T: tuple](title: string, action: RouteActionProc[T]; data: string = ""): RouteAction[T] {.inline.} =
   result = RouteAction[T](title: title, action: action, data: data)
 
+proc addAction*[T](route: Route[T]; action: RouteAction[T]): void {.inline.} =
+  route.actions.add action
+
+proc app*[T: tuple](title: string; tipe: typedesc[T]): Route[T] {.inline.} =
+  result = Route[T](title: title, logger: useWewboLogger(title))
+
 proc app*[T](title: string; actions: openArray[RouteAction[T]]): Route[T] {.inline.} =
-  result = Route[T](title: title, actions: actions.toSeq(), logger: useWewboLogger(title))
+  result = app(title, T)
+
+  for action in actions:
+    result.addAction action
+
+proc wrap*[T](inputs: openArray[string]; act: RouteActionProc[T]): seq[RouteAction[T]] =
+  for input in inputs:
+    result.add action(input, act, input)
+
+proc wrap*[Y: Questionable; T: tuple](inputs: openArray[Y]; act: RouteActionProc[T]): seq[RouteAction[T]] =
+  for input in inputs:
+    result.add action(input.title, act, data = $$input)
+
+proc ask*[Y: Questionable; T: tuple](route: Route; inputs: openArray[Y]; act: RouteActionProc[T]; title: string = ""): void {.inline.} =
+  let newApp = app(title, wrap(inputs, act))
+  newApp.setSession(route.session)
+  newApp.start()
 
 export
   Route, RouteAction, RouteActionProc
@@ -86,6 +115,6 @@ when isMainModule:
     ]
     himeApp = app("hime", actions)
 
-  himeApp.creteSession((playerName: "ini dari awal", episodes: @[]))
+  himeApp.setSession((playerName: "ini dari awal", episodes: @[]))
   himeApp.start()
   sleep(3_000)
