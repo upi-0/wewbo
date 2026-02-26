@@ -17,8 +17,8 @@ proc setSubtitle(subtitleIndex: var int, values: seq[MediaSubtitle], spami: stri
   subtitleIndex = values.find(values.ask(title=spami))
 
 proc download*(f: FullArgument) =
-  proc normalizeIndex(ss: int; dd: int) : CBNormalizeIndex =
-    proc normalizeIndexRezult(max: int) : HSlice[int, int]=
+  proc normalizeIndexProc(ss: int; dd: int) : CBNormalizeIndex =
+    proc normalizeIndexRezult(max: int) : HSlice[int, int] {.gcsafe.} =
       var
         sz = ss
         dz = dd
@@ -59,10 +59,13 @@ proc download*(f: FullArgument) =
     selectedEpisodeEnd = episodeIdx.getIndex(1, 0)
 
   let
+    fBExtractEpisodeFormats: FBExtractEpisodeFormats = setFormat
+    fBExtractEpisodeSubtitles: FBExtractEpisodeSubtitles = setSubtitle
+    cBNormalizeIndex: CBNormalizeIndex = normalizeIndexProc(selectedEpisodeStart, selectedEpisodeEnd)
     fallback: CallbacksGetAllEpisodes = (
-      episodeFormats: setFormat,
-      episodeSubtitles: setSubtitle,
-      normalizeIndex: normalizeIndex(selectedEpisodeStart, selectedEpisodeEnd)
+      episodeFormats: fBExtractEpisodeFormats,
+      episodeSubtitles: fBExtractEpisodeSubtitles,
+      normalizeIndex: cBNormalizeIndex
     )
 
   let ffmpegDownloadOption: FfmpegDownloaderOption = (
@@ -73,15 +76,16 @@ proc download*(f: FullArgument) =
   
   let
     log = newWewboLogger("Downloading")
-    palla = getExtractor(f["source"].getStr)
-    anime = palla.ask(f.nargs[0])
+    (animeTitle, exName) = parseTitleAndSource(f.nargs[0], f["source"].getStr())
+    extractor = exName.getExtractor()
+    anime = extractor.ask(animeTitle)
     tdr = f["outdir"].getStr()
-    rijal = newFfmpegDownloader(outdir = if tdr != "": tdr else: anime.title, options = ffmpegDownloadOption)
+    downloader = newFfmpegDownloader(outdir = if tdr != "": tdr else: anime.title, options = ffmpegDownloadOption)
 
   let
-    animeUrl = palla.get(anime)
-    episodes = palla.getAllEpisodeFormats(animeUrl, selectedEpisodeStart, selectedEpisodeEnd, fallback)
-    outputCode = rijal.downloadAll(episodes.formats, episodes.titles)
+    animeUrl = extractor.get(anime)
+    episodes = extractor.getAllEpisodeFormats(animeUrl, selectedEpisodeStart, selectedEpisodeEnd, fallback)
+    outputCode = downloader.downloadAll(episodes.formats, episodes.titles)
 
   log.info("[INFO] Inspecting")
 

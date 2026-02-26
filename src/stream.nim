@@ -70,33 +70,35 @@ proc searchAll(title: string; sources: seq[string] = @["pahe", "hime"]) : Conten
 proc stream*(title: string, extractorName: string, playerName: string, log: WewboLogger) =
   let
     player = playerName.setPlayer()
+    (anTitle, exName) = parseTitleAndSource(title, extractorName)     
 
   var
     extractor: BaseExtractor
     ad: AnimeData
     adOpt: Option[AnimeData] = none(AnimeData)
 
-  if extractorName.contains(","):
+  # Usage for "wewbo 'Anime Title' -s:source1,source2"
+  if exName.contains(","):
     log.warn("You are currently using experemintal feature of conc searching.")
     log.warn("This action may cause memory leaks.")
 
     (extractor, ad) = searchAll(
-      title,
-      extractorName.split(",")
+      anTitle,
+      exName.split(",")
     )
     adOpt = ad.some
 
   else:
-    extractor = extractorName.getExtractor()
+    extractor = exName.getExtractor()
 
   main_controller_loop(
-    title,
+    anTitle,
     extractor,
     player,
     adOpt
   )
 
-proc stream*(f: FullArgument) =
+proc stream*(f: FullArgument) {.gcsafe.} =
   if f.nargs.len < 1:
     raise newException(ValueError, "Try: `wewbo [Anime Title]`")
 

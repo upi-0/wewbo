@@ -22,18 +22,19 @@ type
     http_headers*: Option[JsonNode] = none(JsonNode)
     connection*: HttpConnection
     lg*: WewboLogger
+    supportCompessed*: bool = true
     initialized: bool = false
 
 method animes*(ex: BaseExtractor, title: string) : seq[AnimeData] {.base, gcsafe.} = discard
-method get*(ex: BaseExtractor, data: AnimeData) : string {.base.} = data.url
+method get*(ex: BaseExtractor, data: AnimeData) : string {.base, gcsafe.} = data.url
 
-method episodes*(ex: BaseExtractor, url: string) : seq[EpisodeData] {.base.} = discard
-method get*(ex: BaseExtractor, data: EpisodeData) : string {.base.} = data.url
+method episodes*(ex: BaseExtractor, url: string) : seq[EpisodeData] {.base, gcsafe.} = discard
+method get*(ex: BaseExtractor, data: EpisodeData) : string {.base, gcsafe.} = data.url
 
-method formats*(ex: BaseExtractor, url: string) : seq[ExFormatData] {.base.} = discard
-method get*(ex: BaseExtractor, data: ExFormatData) : MediaFormatData {.base.} = discard
+method formats*(ex: BaseExtractor, url: string) : seq[ExFormatData] {.base, gcsafe.} = discard
+method get*(ex: BaseExtractor, data: ExFormatData) : MediaFormatData {.base, gcsafe.} = discard
 
-method subtitles*(ex: BaseExtractor; fmt: ExFormatData) : Option[seq[MediaSubtitle]] {.base.} = none(seq[MediaSubtitle])
+method subtitles*(ex: BaseExtractor; fmt: ExFormatData) : Option[seq[MediaSubtitle]] {.base, gcsafe.} = none(seq[MediaSubtitle])
 
 method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, s: int = -1; e: int = -1, fb: CallbacksGetAllEpisodes) : AllEpisodeFormats {.base.} = 
   let
@@ -105,7 +106,8 @@ proc init*[T: BaseExtractor](
     extractor.host,
     userAgent,
     extractor.http_headers,
-    mode=logMode
+    logMode,
+    extractor.supportCompessed
   )
   extractor.initialized = true
 

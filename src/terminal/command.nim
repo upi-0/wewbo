@@ -7,8 +7,6 @@ import
   strutils,
   terminal
 
-from ../utils import exit
-
 type
   SubCommandProc = proc(args: FullArgument) {.nimcall.}
 

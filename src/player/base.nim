@@ -6,14 +6,14 @@ import ../media/types
 
 type Player = ref object of CliApplication
 
-method watch_mp4(player: Player, media: MediaFormatData) {.base.} = discard
-method watch_m3u8(player: Player, media: MediaFormatData) {.base.} = discard
+method watch_mp4(player: Player, media: MediaFormatData) {.gcsafe, base.} = discard
+method watch_m3u8(player: Player, media: MediaFormatData) {.gcsafe, base.} = discard
 
-method setUserAgent(player: Player, val: string) {.base.} = discard
-method setReferer(player: Player, val: string) {.base.} = discard
-method setCookie(player: Player, val: string) {.base.} = discard
+method setUserAgent(player: Player, val: string) {.gcsafe, base.} = discard
+method setReferer(player: Player, val: string) {.gcsafe, base.} = discard
+method setCookie(player: Player, val: string) {.gcsafe, base.} = discard
 
-method setSubtitle(player: Player, subtitle: MediaSubtitle) {.base.} = discard
+method setSubtitle(player: Player, subtitle: MediaSubtitle) {.gcsafe, base.} = discard
 
 proc setHeader(player: Player, header: MediaHttpHeader) =
   for key, val in header.fieldPairs() :

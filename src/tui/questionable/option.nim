@@ -42,7 +42,7 @@ proc optionQ*(default: string; title: string = ""; key: string = "") : OptionStr
 
   once(result.title, result.key) 
 
-proc setColour(item: OptionValuedQuestionable; is_current: bool) : tuple[bg: BackgroundColor; fg: ForegroundColor] =
+method setColour(item: OptionValuedQuestionable; is_current: bool) : tuple[bg: BackgroundColor; fg: ForegroundColor] =
   result.bg = if is_current: bgBlack else: bgBlack
   result.fg = if is_current: fgYellow else: fgWhite
 

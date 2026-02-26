@@ -3,6 +3,7 @@ import
   base,
   tables,
   types,
+  strutils,
   extractors/[
     animepahe,
     kuramanime,
@@ -16,12 +17,13 @@ import
 type
   ExtractorInitProc = proc(ex: var BaseExtractor) {.gcsafe.}
 
-const sukamto: Table[string, ExtractorInitProc] = {
-  "pahe" : (proc: ExtractorInitProc = newAnimepahe)(),
-  "hime" : newHianime,
-  "kura" : newKuramanime,
-  "taku" : newOtakudesu
-}.toTable
+proc sukamtoList(): Table[string, ExtractorInitProc] =
+  result["pahe"] = newAnimepahe
+  result["hime"] = newHianime
+  result["kura"] = newKuramanime
+  result["taku"] = newOtakudesu
+
+const sukamto = sukamtoList()
 
 proc listExtractor*() : seq[string] {.gcsafe.} =
   for k in sukamto.keys: result.add(k)
@@ -35,6 +37,19 @@ proc getExtractor(name: string, mode: string = "tui"): BaseExtractor {.gcsafe.} 
   result.init(
     logMode=detectLogMode(mode)
   )
+
+proc parseTitleAndSource(title, extractorName: string): tuple[anTitle: string, exName: string] =
+  var
+    exName = extractorName
+    anTitle = title
+
+  if title.contains(":"):
+    for ex in listExtractor():
+      if title.contains(ex) and title.endsWith(ex):
+        exName = title.split(":")[^1]
+        anTitle = title.replace(exName)[ 0 ..< ^1]
+
+  return (anTitle: anTitle, exName: exName)        
 
 proc ask*(ex: BaseExtractor, title: string) : AnimeData =
   var listAnime = ex.animes(title)
@@ -69,4 +84,7 @@ export
   getExtractor
 
 export  
-  init, animes, episodes, formats, getAllEpisodeFormats, get, subtitles
+  init, animes, episodes, formats
+
+export  
+  getAllEpisodeFormats, get, subtitles, parseTitleAndSource

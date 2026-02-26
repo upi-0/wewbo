@@ -4,6 +4,9 @@ from strutils import `%`, join, contains
 type
   FfplayPL {.final.} = ref object of Player
 
+proc newFfplayPlayer*(basePlayer: var Player): void =
+  basePlayer = FfplayPL(name: "ffplay")
+
 proc setHeader(ffplay: FfplayPL, ty, val: string) =
   ffplay.args.add "-headers"
   ffplay.args.add "$#: $#" % [ty, val]
