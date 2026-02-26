@@ -3,7 +3,8 @@ import
 
 import translators/[
   google,
-  gemini
+  gemini,
+  openai
 ]
 
 import
@@ -17,6 +18,7 @@ type
 proc loaderTranslaterProcs: LoaderTranslatorProcs =
   result["google"] = newGoogleTranslator
   result["gemini"] = newGeminiTranslator
+  result["openai"] = newOpenaiTranslator
 
 const
   tlLoader = loaderTranslaterProcs()
@@ -28,13 +30,3 @@ proc getTranslator*(name: string; outputLang: Languages; opt: Option[AITranslato
 
   tlLoader[name](result, opt)
   result.init(outputLang, mode=mode)
-
-when isMainModule:
-  let
-    opt: AITranslatorOption = (apikey: "AITertipuKamuBangsat", model: "gemini-flash-lite-latest")
-    tlg = getTranslator("google", opt = some opt, outputLang = laMs, mode=mSilent)
-
-  echo tlg.translate("Aku mau minum air", inputLang=laId)
-
-export
-  options, logger, base, languages
