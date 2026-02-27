@@ -28,7 +28,7 @@ method processApiKey(tl: Translator) : Option[JsonNode] =
 
 method translate*(tl: GeminiTranslator; content: string; inputLang: Languages): string =
   var
-    modelName = tl.aiOption.get.model
+    modelName = tl.defaultModel
 
   if modelName == "":
     tl.log.info("Using default model.")

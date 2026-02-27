@@ -1,4 +1,4 @@
-import ../[base, types], options
+import ../base, options
 import ../../opt
 import std/envvars, strutils
 
