@@ -3,9 +3,7 @@ from tui/utils import waitFor
 
 import extractor/all
 import player/all
-import marshal
-
-import sequtils
+import marshal, options
 
 type
   StreamSession* = tuple[
@@ -32,10 +30,18 @@ proc setTitle(route: StreamRoute): void =
 
 proc realWatch(route: StreamRoute) =
   let
+    ex = route.session.ex
     player = getPlayer("mpv")
-    media = route.session.ex.get to[ExFormatData](route.data)
+    mediaFormat = to[ExFormatData](route.data)
+    media = ex.get mediaFormat
+    subtitles = ex.subtitles(mediaFormat)
 
-  player.watch(media)
+  if subtitles.isSome:
+    let sub = subtitles.get.ask()
+    player.watch(media, some sub)    
+
+  else:
+    player.watch(media)
 
 proc selectAndPlay(route: StreamRoute) =
   let
