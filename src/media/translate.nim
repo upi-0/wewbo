@@ -11,10 +11,14 @@ import
   types
 
 import
-  strutils, sequtils
+  strutils, sequtils, options
 
 import
-  ../translator/all
+  ../translator/[types, all, base],
+  ../languages,
+  ../tui/[ask, logger],
+  ../http/[client, response],
+  ../opt
 
 type
   LineContent = tuple[
@@ -36,20 +40,12 @@ proc merge(chunk: ChunkedLineContent; place: var seq[string]) =
       .replace("&lt;/b&gt;")
       .replace("&lt;b&gt;")
 
-proc translateSubtitle*(
-  subtitle: MediaSubtitle;
-  header: MediaHttpHeader;
-  targetLang: Languages;
-  mode: WewboLogMode = mTui;
-  translatorOption: Option[AITranslatorOption] = none(AITranslatorOption);
-  translatorName: string = "google";
-  chunkLen: int = 5
-) {.gcsafe.} =
+proc translate(translator: Translator; subtitle: MediaSubtitle; header: MediaHttpHeader; distribute: int = 5) =
   let
-    log = useWewboLogger("Subtitle Translator", mode = mode)  
-    tll = getTranslator(translatorName, targetLang, opt=translatorOption, mode=mode)
-    net = newHttpConnection("mgstatics.xyz", header, mode = mode)
-
+    log = translator.log
+    tll = translator
+    net = translator.con
+    
   var
     idx: int # JANGAN LUPA DI RESET YA ANJENG.
 
@@ -86,7 +82,7 @@ proc translateSubtitle*(
   
   proc realTranslate(input: seq[LineContent]): seq[ChunkedLineContent] =
     let
-      rijal = input.distribute(chunkLen)
+      rijal = input.distribute(distribute)
       seperator = " ||| "
 
     var
@@ -142,7 +138,7 @@ when isMainModule:
   let
     ex = getExtractor("hime", mode = "tui")
     an = ex.get ex.animes("uma musume")[0]
-    ep = ex.get ex.episodes(an)[2]
+    ep = ex.get ex.episodes(an)[0]
     fm = ex.formats(ep)[0]
     subs = ex.subtitles fm
     meta = ex.get fm
@@ -152,9 +148,12 @@ when isMainModule:
   # let
     # komi = translateVTTV2()
 
-  let dea = subs.get[1]
+  let
+    dea = subs.get[1]
+    tl = getTranslator("openai", laId)
 
-  dea.translateSubtitle(meta.headers.get, laId)
-  player.watch(meta, some dea)
+  tl.option.ask()
+  tl.translate(subs.get[1], meta.headers.get, 0)
+  # player.watch(meta, some dea)
 
   # writeFile("deket.vtt", subs.get[0].translateVTTV2(meta.headers.get, laSu))
