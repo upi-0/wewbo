@@ -12,7 +12,7 @@ import
   base
 
 type
-  LoaderTranslatorProc = proc(tl: var Translator; option: Option[AITranslatorOption]) {.gcsafe.}
+  LoaderTranslatorProc = proc(tl: var Translator) {.gcsafe.}
   LoaderTranslatorProcs = Table[string, LoaderTranslatorProc]
 
 proc loaderTranslaterProcs: LoaderTranslatorProcs =
@@ -24,9 +24,9 @@ const
   tlLoader = loaderTranslaterProcs()
   tlList = tlLoader.keys.toSeq()
 
-proc getTranslator*(name: string; outputLang: Languages; opt: Option[AITranslatorOption] = none(AITranslatorOption); mode: WewboLogMode = mTui) : Translator =
+proc getTranslator*(name: string; outputLang: Languages; mode: WewboLogMode = mTui) : Translator =
   if not tlList.contains(name):
     raise newException(ValueError, "Invalid translator: '$#'" % name)
 
-  tlLoader[name](result, opt)
+  tlLoader[name](result)
   result.init(outputLang, mode=mode)

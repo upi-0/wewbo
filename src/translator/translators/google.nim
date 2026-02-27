@@ -3,7 +3,7 @@ import ../base
 type
   GoogleTranslator* = ref object of Translator
 
-proc newGoogleTranslator*(tl: var Translator; options: Option[AITranslatorOption] = none(AITranslatorOption)) =
+proc newGoogleTranslator*(tl: var Translator) =
   tl = GoogleTranslator()
   tl.host = "translate.google.com"
   tl.name = "google"
@@ -32,11 +32,3 @@ method translate*(tl: GoogleTranslator; content: string; inputLang: Languages = 
     text = html.getBetween("<div class=\"result-container\">", "</div><div class=\"links-container\">")
 
   result = text
-
-when isMainModule:
-  var tl = Translator()
-  
-  tl.newGoogleTranslator()
-  tl.init(laId)
-
-  echo tl.translate("Jeg elsker dig", inputLang=laDa)
