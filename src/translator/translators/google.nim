@@ -7,6 +7,7 @@ proc newGoogleTranslator*(tl: var Translator) =
   tl = GoogleTranslator()
   tl.host = "translate.google.com"
   tl.name = "google"
+  tl.requireApiKey = false
 
 func getBetween(text: string, start: string, endd: string): string {.noSideEffect.} =
   try:
