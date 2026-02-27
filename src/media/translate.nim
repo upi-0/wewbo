@@ -14,10 +14,10 @@ import
   strutils, sequtils, options
 
 import
-  ../translator/[types, all, base],
+  ../translator/[all, base],
   ../languages,
   ../tui/[ask, logger],
-  ../http/[client, response],
+  ../http/[client, response, utils],
   ../opt
 
 type
@@ -54,7 +54,7 @@ proc translate(translator: Translator; subtitle: MediaSubtitle; header: MediaHtt
       resp: Response
       text: string
 
-    resp = net.req(subtitle.url)
+    resp = net.req(subtitle.url, host=detectHost(subtitle.url))
 
     if resp.status.contains("200"):
       text = resp.to_readable()
@@ -153,7 +153,7 @@ when isMainModule:
     tl = getTranslator("openai", laId)
 
   tl.option.ask()
-  tl.translate(subs.get[1], meta.headers.get, 0)
+  tl.translate(subs.get[1], meta.headers.get, 5)
   # player.watch(meta, some dea)
 
   # writeFile("deket.vtt", subs.get[0].translateVTTV2(meta.headers.get, laSu))

@@ -4,7 +4,7 @@ func addSlash(i: string): string =
   if not i.endsWith("/"): i & "/"
   else: i
 
-func detectHost(url: string): string {.inline.} =
+func detectHost*(url: string): string {.inline.} =
   getBetween(url.addSlash(), "https://", "/")
 
 when isMainModule:
