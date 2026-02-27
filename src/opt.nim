@@ -1,6 +1,9 @@
 import
   json
 
+from strutils import
+  parseInt
+
 type
   OptionJson* = JsonNode
 
@@ -25,7 +28,7 @@ proc s*(plate: OptionJson): string =
   plate.getStr()
 
 proc n*(plate: OptionJson; default: int = 0): int =
-  plate.getInt()
+  plate.getStr().parseInt()
 
 proc b*(plate: OptionJson): bool =
   plate.getStr() == "True"
