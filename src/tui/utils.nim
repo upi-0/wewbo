@@ -10,7 +10,6 @@ proc waitFor*(key: Key; sleep: int = 50): void =
     while true:
       keyInput = getKey()
       if keyInput == key:
-        echo keyInput
         break
       sleep.sleep()
   

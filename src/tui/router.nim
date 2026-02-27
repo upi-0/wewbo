@@ -13,16 +13,20 @@ proc start*[T](route: Route[T]): void =
   var selectedAction: RouteAction[T]
 
   while true:
-    selectedAction = route.actions.ask(route.title)
-    
-    if selectedAction.isNil or selectedAction.title == "Back":
-      break
-
     try:
+      selectedAction = route.actions.ask(route.title)
+      
+      if selectedAction.isNil or selectedAction.title == "Back":
+        break
+
       route.data = selectedAction.data
       selectedAction.action(route)
+
     except RouteActionError:
       route.logger.error("[$#] $#" % [route.logger.name, getCurrentExceptionMsg()])
+    
+    except RouteRequestExit:
+      break
 
 proc raiseError*[T: RouteActionError](route: Route; error: typedesc[T]; message: string): void =
   raise newException(error, message)
