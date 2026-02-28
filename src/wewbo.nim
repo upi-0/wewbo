@@ -1,5 +1,5 @@
 import
-  stream,
+  app/stream/main,
   download,
   version,
   terminal/[command, paramarg],
@@ -20,7 +20,7 @@ proc listAvailablePlayers*(n: FullArgument) =
 
 let app = [
   newSubCommand(
-    "stream", stream.stream, @[
+    "stream", stream, @[
       option("-s", "source", tString, "hime", sourceHelp),
       option("-p", "player", tString, help="Select Player [ffmpeg|mpv]")
     ], "Streaming Anime"

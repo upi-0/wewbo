@@ -5,7 +5,8 @@ import
   base,
   questionable/[
     base,
-    option
+    option,
+    router
   ]
 
 import
@@ -62,9 +63,7 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
     of Key.End:
       selectedContentIdx = input.len - 1
       renderItems()
-    of Key.Left, Key.LeftBracket:
-      return
-    of Key.Enter, Key.Right, Key.RightBracket:
+    of Key.Enter:
       return input[selectedContentIdx]      
     of Key.Escape:
       illwillDeinit()

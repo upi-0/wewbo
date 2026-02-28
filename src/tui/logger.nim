@@ -1,11 +1,11 @@
 import
-  terminal, options, strutils
+  options, strutils, marshal
 
 import
   pkg/illwill
 
 import
-  base
+  base, utils
 
 type
   ContentPTR* = ptr seq[string]
@@ -29,6 +29,15 @@ type
     konten*: Option[ContentPTR]
     saveLog: bool = false
     mode: WewboLogMode
+
+  WewboLogStyle = tuple[
+    fg: illwill.ForegroundColor,
+    bg: illwill.BackgroundColor
+  ]    
+
+const
+  WEWBO_TEXT_STYLE_SEPERATOR = "|||"
+  WEWBO_DEFAULT_STYLE = (fg: illwill.fgWhite, bg: illwill.bgBlack)
 
 let
   loga* = cast[ptr LogContainer](alloc0 sizeof LogContainer)
@@ -94,7 +103,17 @@ proc logAddress(l: WewboLogger) : ContentPTR =
 proc logz*(l: WewboLogger) : seq[string] =
   l.logAddress()[]
 
-proc renderLogs(l: WewboLogger; content: seq[string]) =
+proc parseStyle(text: string): tuple[text: string, style: WewboLogStyle] =
+  if text.contains(WEWBO_TEXT_STYLE_SEPERATOR) :
+    let
+      param = WEWBO_TEXT_STYLE_SEPERATOR
+      rawStyle = text[text.find(param) + param.len .. ^1]
+    
+    return (text: text.replace(rawStyle).replace(WEWBO_TEXT_STYLE_SEPERATOR), style: to[WewboLogStyle](rawStyle))
+
+  (text: text, style: WEWBO_DEFAULT_STYLE)
+
+proc renderLogs*(l: WewboLogger) =
   let
     mf = l.logz
 
@@ -106,19 +125,22 @@ proc renderLogs(l: WewboLogger; content: seq[string]) =
   if showedLog.len >= l.maxLen:
     showedLog = mf[mf.len - l.maxLen .. ^1]
 
+  var
+    text: string
+    style: WewboLogStyle
+
   for log in showedLog:
     idx = l.maxLen - rijal
-    l.setLine(idx, " " & log, display=false)
+    (text, style) = log.parseStyle()
+
+    l.setLine(idx, " " & text, display=false, bg=style.bg, fg=style.fg)
     dec rijal
 
-proc renderLogs(l: WewboLogger) {.inline.} =
-  l.renderLogs(l.logz)
-
-proc addLog(l: WewboLogger; text: string) {.inline.} =
+template addLog(l: WewboLogger; text: string) =
   l.logAddress()[].add(text)
 
-proc render(l: WewboLogger; text: string; textColor: illwill.ForeGroundColor = fgWhite) =
-  l.addLog(text)
+proc render(l: WewboLogger; text: string; styleColor: WewboLogStyle = WEWBO_DEFAULT_STYLE) =
+  l.addLog(text & "|||" & $$styleColor)
   case l.mode
   of mTui:
     l.renderLogs()
@@ -128,14 +150,23 @@ proc render(l: WewboLogger; text: string; textColor: illwill.ForeGroundColor = f
   of mSilent:
     discard
 
+proc color*(fg: ForegroundColor = WEWBO_DEFAULT_STYLE.fg; bg: BackgroundColor = WEWBO_DEFAULT_STYLE.bg): WewboLogStyle {.inline.} =
+  (fg: fg, bg: bg)
+
+proc text*(l: WewboLogger; text: string; color: WewboLogStyle) {.inline.} =
+  l.render(text, color)
+
 proc info*(l: WewboLogger, text: string) {.inline.} =
   l.render(text)
 
 proc warn*(l: WewboLogger, text: string) {.inline.} =
-  l.render(text)
+  l.render(text, color(fgYellow))
 
-proc error*(l: WewboLogger, text: string) {.inline.} =
-  l.render(text)
+proc error*(l: WewboLogger, text: string) =
+  l.render(text, color(fgRed))
+  l.render("[?] Enter to continue", color(fgYellow))
+
+  waitFor(Key.Enter)
 
 proc stop*(l: WewboLogger; save: bool = false) =
   if l.mode == mTui:
@@ -146,3 +177,6 @@ proc stop*(l: WewboLogger; save: bool = false) =
 
   if l.konten.isNone:
     l.logAddress()[].reset()
+
+when isMainModule:
+  discard
