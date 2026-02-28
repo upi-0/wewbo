@@ -48,11 +48,7 @@ when isMainModule:
   opt.putRange(1, 24, "fps")
   
   opt.ask()
-
-  echo opt["api"].s
-  echo opt["player"].s
-  echo opt["fps"].n
-
+  
   type
     RijalOpt = ref tuple[status, hitam, nama: string]
       
