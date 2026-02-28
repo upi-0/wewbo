@@ -153,7 +153,7 @@ proc reNewClient(connection: HttpConnection) =
 
   connection.client = client
 
-proc jsonToForm*(j: JsonNode): string =
+proc jsonToForm*(j: JsonNode): string {.deprecated: "use http/utils instead".} =
   var parts: seq[string] = @[]
 
   for k, v in j.pairs:
