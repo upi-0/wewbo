@@ -230,6 +230,7 @@ proc req*(
     url = connection.normalize_url url
 
   proc loadContent() : Response =
+    connection.info(url)
     try:
       return connection.client.reqq(url, mthod, payload, host)
     except ProtocolError:
