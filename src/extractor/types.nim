@@ -28,8 +28,8 @@ type
 
 # Fallback & Callback
 type
-  FBExtractEpisodeFormats* = proc(fIndex: var int; formats: seq[ExFormatData]; spami: string = "")
-  FBExtractEpisodeSubtitles* = proc(sIndex: var int; subtitles: seq[MediaSubtitle]; spami: string = "")
+  FBExtractEpisodeFormats* = proc(fIndex: var int; formats: seq[ExFormatData]; spami: string = "") {.gcsafe.}
+  FBExtractEpisodeSubtitles* = proc(sIndex: var int; subtitles: seq[MediaSubtitle]; spami: string = "") {.gcsafe.}
   CBNormalizeIndex* = proc(max: int) : HSlice[int, int] {.gcsafe.}
   
   CallbacksGetAllEpisodes* = tuple[

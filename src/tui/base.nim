@@ -1,7 +1,8 @@
 import
-  illwill, strutils, terminal
+  illwill, strutils
 
 import ../version  
+from terminal import eraseScreen
 
 type
   WewboTUI* = ref object of RootObj

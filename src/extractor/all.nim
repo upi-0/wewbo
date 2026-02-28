@@ -17,12 +17,13 @@ import
 type
   ExtractorInitProc = proc(ex: var BaseExtractor) {.gcsafe.}
 
-const sukamto: Table[string, ExtractorInitProc] = {
-  "pahe" : (proc: ExtractorInitProc = newAnimepahe)(),
-  "hime" : newHianime,
-  "kura" : newKuramanime,
-  "taku" : newOtakudesu
-}.toTable
+proc sukamtoList(): Table[string, ExtractorInitProc] =
+  result["pahe"] = newAnimepahe
+  result["hime"] = newHianime
+  result["kura"] = newKuramanime
+  result["taku"] = newOtakudesu
+
+const sukamto = sukamtoList()
 
 proc listExtractor*() : seq[string] {.gcsafe.} =
   for k in sukamto.keys: result.add(k)

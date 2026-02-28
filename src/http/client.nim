@@ -260,8 +260,8 @@ proc req*(
   mthod: HttpMethod = HttpGet,
   save_cookie: bool = true,
   host: string = "",
-  payload: JsonNode = %*{},
-  useCache: bool = false
+  useCache: bool = false,
+  payload: JsonNode
 ): Response {.gcsafe.} =
   req(connection, url, mthod, save_cookie, host, $payload, useCache)
 
