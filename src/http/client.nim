@@ -7,11 +7,12 @@ import std/[
   uri,
   options,
   net,
-  os
+  os,
 ]
-import ../media/types
-import ./cache
-import ../tui/logger as tl
+import
+  ../media/types,
+  ../tui/logger,
+  ./cache
 
 type
   HttpConnection = ref object of RootObj
@@ -31,7 +32,7 @@ let
   cptr = cast[ptr HttpLocalData](alloc0 sizeof HttpLocalData)
 
 proc info(con: HttpConnection, text: string) =
-  con.log.info("[HTTP] " & text)
+  con.log.info("[$#] " % [con.host] & text)
 
 proc ensureCACert(log: WewboLogger): string =
   let pemName = getTempDir() / "wewbo-cacert.pem"
@@ -63,7 +64,7 @@ proc generataContext(): SslContext =
     log.info("Use existing context.")
     result = cptr.context.get   
 
-proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode), mode: WewboLogMode = mTui): HttpConnection =
+proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode), mode: WewboLogMode = mTui; useCompress: bool = true): HttpConnection =
   var
     accept: array[5, string] = [
       "text/html,application/xhtml+xml,application/xml",
@@ -85,9 +86,10 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
 
   if headers.isSome:
     for k, v in headers.get.pairs():
-      base_headers.add(
-        (k, v.getStr)
-      )
+      base_headers.add (k, v.getStr)
+
+  if useCompress:
+    base_headers.add ("Accept-Encoding", "gzip")
 
   base_headers.add(("Accept", join(accept, ";")))
   base_headers.add(("Host", host))
@@ -109,7 +111,9 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
     ssl: context,
     log: useWewboLogger(host, mode=mode)
   )
-  result.info("HEADERS: " & $base_headers)
+  
+  result.info("Use gzip: $#" % [if useCompress: "YES" else: "NO"])
+  result.info("HEADERS: $#" % [$base_headers])
 
 proc newHttpConnection*(host: string, header: MediaHttpHeader, mode: WewboLogMode = mTui) : HttpConnection =
   var goblok = newJObject()
@@ -256,8 +260,8 @@ proc req*(
   mthod: HttpMethod = HttpGet,
   save_cookie: bool = true,
   host: string = "",
-  payload: JsonNode = %*{},
-  useCache: bool = false
+  useCache: bool = false,
+  payload: JsonNode
 ): Response {.gcsafe.} =
   req(connection, url, mthod, save_cookie, host, $payload, useCache)
 

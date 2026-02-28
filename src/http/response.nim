@@ -3,10 +3,15 @@ import
   q,
   xmltree,
   httpclient,
-  json
+  json,
+  zippy
 
 proc to_readable*(response: Response) : string =
-  response.body
+  result = response.body
+  try:
+    result = result.uncompress()
+  except ZippyError:
+    discard
 
 proc to_json*(response: Response) : JsonNode =
   response.to_readable().parseJson()

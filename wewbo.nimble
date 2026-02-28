@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.9.2"
+version       = "0.9.4"
 author        = "upi-0"
 description   = "An interactive terminal application for streaming and downloading anime from various streaming sources."
 license       = "GPL-3.0"
@@ -16,3 +16,4 @@ requires "illwill >= 0.4.1"
 requires "q >= 0.0.8"
 requires "htmlparser"
 requires "malebolgia >= 1.3.0"
+requires "zippy >= 0.10.18"

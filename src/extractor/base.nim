@@ -22,6 +22,7 @@ type
     http_headers*: Option[JsonNode] = none(JsonNode)
     connection*: HttpConnection
     lg*: WewboLogger
+    supportCompessed*: bool = true
     initialized: bool = false
 
 method animes*(ex: BaseExtractor, title: string) : seq[AnimeData] {.base, gcsafe.} = discard
@@ -105,7 +106,8 @@ proc init*[T: BaseExtractor](
     extractor.host,
     userAgent,
     extractor.http_headers,
-    mode=logMode
+    logMode,
+    extractor.supportCompessed
   )
   extractor.initialized = true
 

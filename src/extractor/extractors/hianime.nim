@@ -32,6 +32,7 @@ proc newHianime*(extractor: var BaseExtractor) =
   extractor = HianimeEX(
     name: "hime",
     host: "hianime.to",
+    supportCompessed: false,
     http_headers: some %*{
       "Referer" : "https://hianime.to/"
     }
