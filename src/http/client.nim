@@ -153,7 +153,7 @@ proc reNewClient(connection: HttpConnection) =
 
   connection.client = client
 
-proc jsonToForm*(j: JsonNode): string =
+proc jsonToForm*(j: JsonNode): string {.deprecated: "use http/utils instead".} =
   var parts: seq[string] = @[]
 
   for k, v in j.pairs:
@@ -230,6 +230,7 @@ proc req*(
     url = connection.normalize_url url
 
   proc loadContent() : Response =
+    connection.info(url)
     try:
       return connection.client.reqq(url, mthod, payload, host)
     except ProtocolError:
