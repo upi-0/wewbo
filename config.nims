@@ -6,6 +6,7 @@ from macros import error
 
 switch("outdir", "build")
 switch("define", "useMalloc")
+switch("p", "src")
 
 const
   nimVersion = (major: NimMajor, minor: NimMinor, patch: NimPatch)

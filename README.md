@@ -53,7 +53,7 @@ dl
 wewbo "naruto"
 
 # Search for anime from Animepahe
-wewbo -s:pahe "one piece"
+wewbo "one piece:pahe"
 
 # Search for anime using FFplay as player
 wewbo -p:ffplay "attack on titan"
@@ -78,6 +78,14 @@ scoop install mpv https://github.com/upi-0/wewbo/releases/latest/download/wewbo.
 scoop install ffmpeg
 ```
 ### Linux
+<b>AUR</b>
+```bash
+yay -S wewbo
+```
+```bash
+paru -S wewbo
+```
+
 <b>Curl</b>
 ```bash
 curl -L https://github.com/upi-0/wewbo/releases/latest/download/wewbo -o ~/.local/bin/wewbo
@@ -91,11 +99,15 @@ wget https://github.com/upi-/wewbo/releases/latest/download/wewbo -O ~/.local/bi
 chmod a+rx ~/.local/bin/wewbo  # Make executable
 ```
 
-### Compile
+### Nim
+<b>Git Clone</b>
 ```bash
 git clone https://github.com/upi-0/wewbo && cd wewbo
-nimble install q illwill htmlparser malebolgia
-nim c src/wewbo
+nimble build -y
+```
+<b>Install directly</b>
+```bash
+nimble install wewbo
 ```
 
 ## Roadmap

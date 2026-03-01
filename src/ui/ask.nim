@@ -1,3 +1,4 @@
+{.deprecated.}
 import illwill, os, terminal, strutils
 import asset
 

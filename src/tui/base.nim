@@ -1,7 +1,8 @@
 import
-  illwill, strutils
+  illwill, strutils,
+  ../version
 
-import ../version  
+from utils import crop
 from terminal import eraseScreen
 
 type
@@ -27,12 +28,7 @@ proc renderBanner(tui: WewboTUI) =
   tui.currentY = 7
 
 proc crop(tui: WewboTUI; text: var string) =
-  if text.len >= tui.tb.width - 2:
-    text = text[0 .. tui.tb.width - 2 - 5]
-    text &= "..."
-
-  text = text.replace("\r", "")
-  text.stripLineEnd()
+  text.crop()
 
 proc renderBorder(tui: WewboTUI) = 
   var tl = " $# " % [tui.head]
