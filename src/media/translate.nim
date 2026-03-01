@@ -11,10 +11,14 @@ import
   types
 
 import
-  strutils, sequtils
+  strutils, sequtils, options
 
 import
-  ../translator/all
+  ../translator/[all, base],
+  ../languages,
+  ../tui/[ask, logger],
+  ../http/[client, response, utils],
+  ../opt
 
 type
   LineContent = tuple[
@@ -36,12 +40,12 @@ proc merge(chunk: ChunkedLineContent; place: var seq[string]) =
       .replace("&lt;/b&gt;")
       .replace("&lt;b&gt;")
 
-proc translateVTTV2(subtitle: MediaSubtitle; header: MediaHttpHeader; targetLang: Languages; mode: WewboLogMode = mTui) {.gcsafe.} =
+proc translate(translator: Translator; subtitle: MediaSubtitle; header: MediaHttpHeader; distribute: int = 5) =
   let
-    log = useWewboLogger("Subtitle Translator", mode = mode)  
-    tll = getTranslator("google", targetLang, mode = mode)
-    net = newHttpConnection("mgstatics.xyz", header, mode = mode)
-
+    log = translator.log
+    tll = translator
+    net = translator.con
+    
   var
     idx: int # JANGAN LUPA DI RESET YA ANJENG.
 
@@ -50,7 +54,7 @@ proc translateVTTV2(subtitle: MediaSubtitle; header: MediaHttpHeader; targetLang
       resp: Response
       text: string
 
-    resp = net.req(subtitle.url)
+    resp = net.req(subtitle.url, host=detectHost(subtitle.url))
 
     if resp.status.contains("200"):
       text = resp.to_readable()
@@ -76,9 +80,9 @@ proc translateVTTV2(subtitle: MediaSubtitle; header: MediaHttpHeader; targetLang
 
     idx.reset() 
   
-  proc realTranslate(input: seq[LineContent]; chunkLen: int = 5): seq[ChunkedLineContent] =
+  proc realTranslate(input: seq[LineContent]): seq[ChunkedLineContent] =
     let
-      rijal = input.distribute(chunkLen)
+      rijal = input.distribute(distribute)
       seperator = " ||| "
 
     var
@@ -134,7 +138,7 @@ when isMainModule:
   let
     ex = getExtractor("hime", mode = "tui")
     an = ex.get ex.animes("uma musume")[0]
-    ep = ex.get ex.episodes(an)[2]
+    ep = ex.get ex.episodes(an)[0]
     fm = ex.formats(ep)[0]
     subs = ex.subtitles fm
     meta = ex.get fm
@@ -144,9 +148,12 @@ when isMainModule:
   # let
     # komi = translateVTTV2()
 
-  let dea = subs.get[1]
+  let
+    dea = subs.get[1]
+    tl = getTranslator("openai", laId)
 
-  dea.translateVTTV2(meta.headers.get, laId)
-  player.watch(meta, some dea)
+  tl.option.ask()
+  tl.translate(subs.get[1], meta.headers.get, 5)
+  # player.watch(meta, some dea)
 
   # writeFile("deket.vtt", subs.get[0].translateVTTV2(meta.headers.get, laSu))

@@ -1,10 +1,11 @@
 import
-  options, json, strutils
+  options, json, strutils, std/envvars
 
 import
   ../http/[client, response],
-  ../tui/logger,
-  ../languages
+  ../tui/[ask, logger],
+  ../languages,
+  ../opt
 
 import
   ./types  
@@ -22,11 +23,13 @@ type
     name*: string
     host*: string
     outputLang*: Languages
+    requireApiKey*: bool = true
 
     # AI (gemini, openai)
-    aiOption*: Option[AITranslatorOption] = none(AITranslatorOption)
+    aiOption* {.deprecated.}: Option[AITranslatorOption] = none(AITranslatorOption)
+    option*: OptionJson = newJObject()
     promptTemplate*: string = promptTemplateRaw
-    metadata*: JsonNode = newJObject()
+    metadata* {.deprecated.}: JsonNode = newJObject()
 
     # Internal
     headers: Option[JsonNode]
@@ -36,13 +39,25 @@ type
 method translate*(tl: Translator; content: string; inputLang: Languages = laEn) : string {.gcsafe,base.} = discard
 method translate*(tl: Translator; content: Content; inputLang: Languages = laEn) : Content{.gcsafe,base.}  = discard
 
+method defaultAiOption(tl: Translator): AITranslatorOption {.base.} =
+  result.apiKey = ""
+  result.model = ""
+  result.baseUrl = ""
+
 method processApiKey(tl: Translator) : Option[JsonNode] {.gcsafe,base.} =
   let
+    apiKeyFieldName = "WB_" & tl.name.toUpper() & "_KEY"
     headerJson = newJObject()
 
-  if tl.aiOption.isSome:
-    headerJson["Authorization"] = %("Bearer " & tl.aiOption.get.apiKey)
+  var
+    apiKey = getEnv(apiKeyFieldName)    
+
+  if tl.requireApiKey and apiKey != "":
+    headerJson["Authorization"] = %("Bearer " & apiKey)
     return some headerJson
+
+  elif apiKey == "":
+    raise newException(ValueError, "The API KEY is missing. " & apiKeyFieldName)
 
   none JsonNode
 
@@ -59,15 +74,20 @@ proc processHeader(tl: Translator) =
     tl.headers = headerApiKey
 
 proc init*[T: Translator](translator: T; outputLang: Languages; mode: WewboLogMode = mSilent) = 
+  translator.log = useWewboLogger(translator.name, mode=mode)
   translator.processHeader()
   translator.outputLang = outputLang
-  translator.log = useWewboLogger(translator.name, mode=mode)
   translator.con = newHttpConnection(
     translator.host,
-    "Mozilla",
+    "wewbo Translator",
     translator.headers,
     mode
   )
+  translator.option.putRange(5, 12, "Max Request")
+
+proc ask*(translator: Translator): void {.gcsafe.} =
+  if translator.option.len > 0:
+    translator.option.ask()
 
 proc close*[T: Translator](translator: T) =
   translator.con.close()
