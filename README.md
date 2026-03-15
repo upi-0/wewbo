@@ -11,7 +11,7 @@ Wewbo is a command-line-based application that allows you to search for anime, s
 ## Sources Status
 | Name | Web | Status | Issue |
 |---------|-----------|----| -- |
-| Hime  | https://hianime.to | ✅ | - |
+| Hime  | https://hianime.to | ❌ | End of Service |
 | Kura | https://v8.kuramanime.tel | ❌ | Cryptography |
 | Pahe | https://animepahe.to | ✅ | - |
 | Taku | https://otakudesu.best | ✅ | - |
