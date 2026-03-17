@@ -38,7 +38,11 @@ proc find*[T](inputs: openArray[T]; key: string; getKey: GetKeyProc[T] = c[T]): 
     if batch.score > 0:
       batchs.add batch
 
-  batchs.sort(order=Descending)
+  proc batchCmp(x, y: Batch): int =
+    if x.score > y.score or x.score == y.score: 1
+    else: -1
+
+  batchs.sort(batchCmp, Descending)
 
   for bch in batchs:
     result.add bch.inputObject
@@ -56,3 +60,7 @@ when isMainModule:
     assert subhanallah.find("slow start", getStr) == @[subhanallah[2], subhanallah[1]]
     assert subhanallah.find("one man", getStr) == @[subhanallah[^1]]
     assert subhanallah.find("naruto", getStr) == @[]    
+
+  block example3:
+    const subhanallah = ["Kono Yuusha ga Ore TUEEE Kuse ni Shinchou Sugiru (TV)", "Kono Bijutsubu ni wa Mondai ga Aru! (TV)", "Konoyo no Hate de Koi o Utau Shoujo YU-NO (TV)"]
+    assert subhanallah.find("kono bijutsubu") == @[subhanallah[1], subhanallah[0], subhanallah[2]]
