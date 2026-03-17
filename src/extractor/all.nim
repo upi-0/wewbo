@@ -8,7 +8,8 @@ import
     animepahe,
     kuramanime,
     otakudesu,
-    hianime
+    hianime,
+    tokyoinsider
   ]
 
 import
@@ -22,6 +23,7 @@ proc sukamtoList(): Table[string, ExtractorInitProc] =
   result["hime"] = newHianime
   result["kura"] = newKuramanime
   result["taku"] = newOtakudesu
+  result["toyo"] = newTokyoInsider
 
 const sukamto = sukamtoList()
 
