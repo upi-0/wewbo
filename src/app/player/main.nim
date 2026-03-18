@@ -15,10 +15,10 @@ proc playerTest*(f: FullArgument) =
 
   let
     playerName = f.nargs[0]    
-    players = availablePlayer(true)
+    hasihite = availablePlayer(true)
 
-  if not players.contains(playerName):
-    echo "Please select one of: ", players
+  if not hasihite.contains(playerName):
+    echo "Please select one of: ", hasihite
     quit(1)
   
   let

@@ -31,15 +31,15 @@ type
 method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
   discard
 
-proc check(app: CliApplication; appPath = app.name) : bool =
+proc check(app: CliApplication) : bool =
   block firstChek:
-    let path = appPath.findExe()
+    let path = app.path
     result = path.len >= 1 or path.len >= 1
   
   block secondCheck:
     if not result:
       try:
-        discard execCmd appPath
+        discard execCmd app.path
         result = true
       except OSError: 
         result = false
@@ -47,8 +47,8 @@ proc check(app: CliApplication; appPath = app.name) : bool =
 method specialLineCB(cli: CliApplication) : SpecialLineProc {.gcsafe, base.} =
   (proc(x: string) : bool = x.contains("\r"))
 
-proc setUp[T: CliApplication](app: T; path = app.name) : T =
-  app.path = path
+proc setUp[T: CliApplication](app: T) : T =
+  app.path = app.name.findExe()
   app.available = app.check()
   app.specialLogLine = app.specialLineCB()
   app.log = useWewboLogger(app.name, mode = app.logMode)
