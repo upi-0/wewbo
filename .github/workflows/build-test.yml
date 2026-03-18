@@ -35,7 +35,7 @@ jobs:
         path: ~/.nimble
         key: ${{ runner.os }}-nimble-${{ matrix.nim-version}}-${{ hashFiles('wewbo.nimble') }}
         restore-keys: |
-          ${{ runner.os }}-nimble-${{ matrix.nim-version}}-
+          ${{ runner.os }}-nimble-${{ matrix.nim-version}}-${{ hashFiles('wewbo.nimble') }}
 
     - name: Setup nim
       uses: jiro4989/setup-nim-action@v2
