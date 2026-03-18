@@ -20,6 +20,7 @@ type
     path: string
     process {.deprecated.}: Process
     log*: tlog.WewboLogger
+    logMode*: WewboLogMode
     available*: bool = false
     specialLogLine*: SpecialLineProc
 
@@ -30,17 +31,27 @@ type
 method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
   discard
 
-proc check(app: CliApplication) : bool =
-  findExe(app.path).len >= 1 or findExe(app.name).len >= 1
+proc check(app: CliApplication; appPath = app.name) : bool =
+  block firstChek:
+    let path = appPath.findExe()
+    result = path.len >= 1 or path.len >= 1
+  
+  block secondCheck:
+    if not result:
+      try:
+        discard execCmd appPath
+        result = true
+      except OSError: 
+        result = false
 
 method specialLineCB(cli: CliApplication) : SpecialLineProc {.gcsafe, base.} =
   (proc(x: string) : bool = x.contains("\r"))
 
-proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
+proc setUp[T: CliApplication](app: T; path = app.name) : T =
   app.path = path
   app.available = app.check()
   app.specialLogLine = app.specialLineCB()
-  app.log = useWewboLogger(app.name)
+  app.log = useWewboLogger(app.name, mode = app.logMode)
 
   if not app.available :
     app.failureHandler(erCommandNotFound)
@@ -51,7 +62,7 @@ proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
 proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int =  
   let
     isLinux = defined(linux)
-    processLogger = newWewboLogger(message)
+    processLogger = newWewboLogger(message, mode = app.logMode)
 
   var
     outputBuffer: string
