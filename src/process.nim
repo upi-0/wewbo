@@ -127,8 +127,17 @@ proc execute(
   clearArgs: bool = true,
   after: Option[AfterExecuteProc] = none(AfterExecuteProc)
 ) : int =
-  let process = startProcess(app.path.findExe(), ".", app.args)
-  app.log.info("ARGS: " & $app.args)
+  let
+    appPath = app.path.findExe()
+    process = startProcess(app.path.findExe(), ".", app.args)
+
+  block logging:
+    app.log.text("APP_NAME: " & app.name, color(fgYellow))
+    app.log.text("APP_PATH: " & appPath, color(fgYellow))
+    app.log.text("APP_ARGS:", color(fgYellow))
+    for arg in app.args:
+      app.log.text("- " & arg, color(fgYellow))
+  
   result = app.start(process, message)
 
   if clearArgs :
