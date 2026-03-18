@@ -1,22 +1,14 @@
 import
   app/stream/main,
   app/dl/main,
+  app/player/main
+
+import  
   version,
   terminal/[command, paramarg],
   tui/[base, logger]
 
-import
-  player/all
-
-const sourceHelp = "Select Source [kura|pahe|hime|taku]"
-
-proc listAvailablePlayers*(n: FullArgument) =
-  if players.len > 1 :
-    for pler in players :
-      echo "- " & pler
-
-  else :
-    echo "There are no players in your device."      
+const sourceHelp = "Select Source [kura|pahe|hime|taku]"    
 
 let app = [
   newSubCommand(
@@ -36,12 +28,16 @@ let app = [
     ], "Downloading Anime"
   ),
   newSubCommand(
-    "--list-players", listAvailablePlayers, help="list availabale players in your device."
+    "player.list", playerList, help="list availabale players in your device."
+  ),
+  newSubCommand(
+    "player.test", playerTest, help="Player testing & verbosing.", argOpts = @[
+      option("-u", "url", tString, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "Media URL")
+    ]
   )
 ]
 
 proc main* = 
-  echo ver
   try:
     app.start()
   
