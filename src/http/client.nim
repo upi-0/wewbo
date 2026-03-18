@@ -209,7 +209,7 @@ proc extractCookie(cookies: string, cookie: string) : string =
   for line in cookies.split("\n"):
     let cookieValue = line.split(";")[0].strip()
     if cookieValue.len > 0:
-      if not cookie.isNil :
+      if cookie.len > 0 :
         var existing = cookie
         if cookieValue notin existing:
           return existing & "; " & cookieValue
