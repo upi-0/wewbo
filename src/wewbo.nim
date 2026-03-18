@@ -1,6 +1,6 @@
 import
   app/stream/main,
-  download,
+  app/dl/main,
   version,
   terminal/[command, paramarg],
   tui/[base, logger]
@@ -26,7 +26,7 @@ let app = [
     ], "Streaming Anime"
   ),
   newSubCommand(
-    "dl", download.download, @[
+    "dl", download, @[
       option("-s", "source", tString, "hime", sourceHelp),
       option("--outdir", "outdir", tString, help="Define output directory"),
       option("-e", "episode", tString, help="Episode to download. (based on index)"),
