@@ -13,7 +13,7 @@ const sourceHelp = "Select Source [kura|pahe|hime|taku]"
 let app = [
   newSubCommand(
     "stream", stream, @[
-      option("-s", "source", tString, "hime", sourceHelp),
+      option("-s", "source", tString, "pahe", sourceHelp),
       option("-p", "player", tString, help="Select Player [ffmpeg|mpv]"),
       option("--mpv", "mpv_path", tString, help="mpv path"),
       option("--ffplay", "ffplay_path", tString, help="ffplay path")
@@ -21,7 +21,7 @@ let app = [
   ),
   newSubCommand(
     "dl", download, @[
-      option("-s", "source", tString, "hime", sourceHelp),
+      option("-s", "source", tString, "pahe", sourceHelp),
       option("--outdir", "outdir", tString, help="Define output directory"),
       option("-e", "episode", tString, help="Episode to download. (based on index)"),
       option("-fps", "fps", tInt, 24, "Set Video frame per second"),
