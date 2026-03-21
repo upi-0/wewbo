@@ -16,14 +16,15 @@ proc playerTest*(f: FullArgument) =
   let
     playerName = f.nargs[0]    
     hasihite = availablePlayer(true)
+    playerPath = f["player_path"].getStr()
 
-  if not hasihite.contains(playerName):
+  if not hasihite.contains(playerName) and playerPath.len < 1:
     echo "Please select one of: ", hasihite
     quit(1)
   
   let
     url = f["url"].getStr()
-    player = getPlayer(playerName, mode=mEcho)
+    player = getPlayer(playerName, playerPath, mode=mEcho)
     media = MediaFormatData(
       video: url,
       typeExt: extMp4)

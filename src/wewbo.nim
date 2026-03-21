@@ -14,7 +14,9 @@ let app = [
   newSubCommand(
     "stream", stream, @[
       option("-s", "source", tString, "hime", sourceHelp),
-      option("-p", "player", tString, help="Select Player [ffmpeg|mpv]")
+      option("-p", "player", tString, help="Select Player [ffmpeg|mpv]"),
+      option("--mpv", "mpv_path", tString, help="mpv path"),
+      option("--ffplay", "ffplay_path", tString, help="ffplay path")
     ], "Streaming Anime"
   ),
   newSubCommand(
@@ -32,7 +34,8 @@ let app = [
   ),
   newSubCommand(
     "player.test", playerTest, help="Player testing & verbosing.", argOpts = @[
-      option("-u", "url", tString, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "Media URL")
+      option("-u", "url", tString, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "Media URL"),
+      option("-p", "player_path", tString, help="player path")
     ]
   )
 ]

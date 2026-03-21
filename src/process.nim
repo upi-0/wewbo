@@ -29,7 +29,9 @@ type
     erCommandNotFound,
 
 method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
-  discard
+  if context == erCommandNotFound:
+    let msg = "'$#' Is not exist." % app.name
+    raise newException(ValueError, msg)
 
 proc check(app: CliApplication) : bool =
   app.path = app.name.findExe()
