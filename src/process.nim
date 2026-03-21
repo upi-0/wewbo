@@ -20,7 +20,8 @@ type
     path: string
     process {.deprecated.}: Process
     log*: tlog.WewboLogger
-    available*: bool = false
+    logMode*: WewboLogMode
+    available* {.deprecated.}: bool = false
     specialLogLine*: SpecialLineProc
 
   CliError* = enum
@@ -28,21 +29,30 @@ type
     erCommandNotFound,
 
 method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
-  discard
+  if context == erCommandNotFound:
+    let msg = "'$#' Is not exist." % app.name
+    raise newException(ValueError, msg)
+
+proc logginArg(app: CliApplication; log = app.log) : void =
+  log.text("APP_NAME: " & app.name, color(fgYellow))
+  log.text("APP_PATH: " & app.path, color(fgYellow))
+  log.text("APP_ARGS:", color(fgYellow))
+  
+  for arg in app.args:
+    log.text("- " & arg, color(fgYellow))  
 
 proc check(app: CliApplication) : bool =
-  findExe(app.path).len >= 1 or findExe(app.name).len >= 1
+  app.path = app.name.findExe()
+  app.path.fileExists()
 
 method specialLineCB(cli: CliApplication) : SpecialLineProc {.gcsafe, base.} =
   (proc(x: string) : bool = x.contains("\r"))
 
-proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
-  app.path = path
-  app.available = app.check()
+proc setUp[T: CliApplication](app: T) : T =
   app.specialLogLine = app.specialLineCB()
-  app.log = useWewboLogger(app.name)
+  app.log = useWewboLogger(app.name, mode = app.logMode)
 
-  if not app.available :
+  if not app.check() :
     app.failureHandler(erCommandNotFound)
     quit(1)
 
@@ -51,12 +61,12 @@ proc setUp[T: CliApplication](app: T; path: string = app.name) : T =
 proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int =  
   let
     isLinux = defined(linux)
-    processLogger = newWewboLogger(message)
+    processLogger = newWewboLogger(message, mode = app.logMode)
 
   var
     outputBuffer: string
     lines: seq[string]
-    stream: Stream = process.peekableOutputStream()
+    stream = process.peekableOutputStream()
 
   proc sendLog(line: string) =    
     if app.specialLogLine(line):
@@ -93,7 +103,8 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
     except:
       discard # Jangan males napa lu ah  
 
-  processLogger.info("ARGS: " & $app.args)
+  # processLogger.info("ARGS: " & $app.args)
+  app.logginArg(processLogger)
 
   while true:
     if process.running():
@@ -117,7 +128,8 @@ proc execute(
   after: Option[AfterExecuteProc] = none(AfterExecuteProc)
 ) : int =
   let process = startProcess(app.path.findExe(), ".", app.args)
-  app.log.info("ARGS: " & $app.args)
+  app.logginArg()
+  
   result = app.start(process, message)
 
   if clearArgs :

@@ -31,7 +31,7 @@ type
 
 proc newOtakudesu*(ex: var BaseExtractor) =
   ex = OtakudesuEX(
-    host: "otakudesu.best",
+    host: "otakudesu.blog",
     name: "taku",
     http_headers: some(%*{
       "Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8"
