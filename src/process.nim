@@ -33,6 +33,14 @@ method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
     let msg = "'$#' Is not exist." % app.name
     raise newException(ValueError, msg)
 
+proc logginArg(app: CliApplication; log = app.log) : void =
+  log.text("APP_NAME: " & app.name, color(fgYellow))
+  log.text("APP_PATH: " & app.path, color(fgYellow))
+  log.text("APP_ARGS:", color(fgYellow))
+  
+  for arg in app.args:
+    log.text("- " & arg, color(fgYellow))  
+
 proc check(app: CliApplication) : bool =
   app.path = app.name.findExe()
   app.path.fileExists()
@@ -58,7 +66,7 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
   var
     outputBuffer: string
     lines: seq[string]
-    stream: Stream = process.peekableOutputStream()
+    stream = process.peekableOutputStream()
 
   proc sendLog(line: string) =    
     if app.specialLogLine(line):
@@ -95,7 +103,8 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
     except:
       discard # Jangan males napa lu ah  
 
-  processLogger.info("ARGS: " & $app.args)
+  # processLogger.info("ARGS: " & $app.args)
+  app.logginArg(processLogger)
 
   while true:
     if process.running():
@@ -118,16 +127,8 @@ proc execute(
   clearArgs: bool = true,
   after: Option[AfterExecuteProc] = none(AfterExecuteProc)
 ) : int =
-  let
-    appPath = app.path.findExe()
-    process = startProcess(app.path.findExe(), ".", app.args)
-
-  block logging:
-    app.log.text("APP_NAME: " & app.name, color(fgYellow))
-    app.log.text("APP_PATH: " & appPath, color(fgYellow))
-    app.log.text("APP_ARGS:", color(fgYellow))
-    for arg in app.args:
-      app.log.text("- " & arg, color(fgYellow))
+  let process = startProcess(app.path.findExe(), ".", app.args)
+  app.logginArg()
   
   result = app.start(process, message)
 
