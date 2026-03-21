@@ -9,6 +9,7 @@ type
   StreamSession* = tuple[
     ex: BaseExtractor,
     anime: AnimeData,
+    player: Player,
     episodes: seq[EpisodeData],
     episodeIndex: int
   ]  
@@ -31,7 +32,7 @@ proc setTitle(route: StreamRoute): void =
 proc realWatch(route: StreamRoute) =
   let
     ex = route.session.ex
-    player = getPlayer("mpv")
+    player = route.session.player
     mediaFormat = to[ExFormatData](route.data)
     media = ex.get mediaFormat
     subtitles = ex.subtitles(mediaFormat)

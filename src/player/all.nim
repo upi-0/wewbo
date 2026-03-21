@@ -18,12 +18,21 @@ proc loaderPlayerProcs: LoaderPlayerProcs =
 
 const
   playerLoader = loaderPlayerProcs()
-  playerList = playerLoader.keys.toSeq()
+  playerList* = playerLoader.keys.toSeq()
   players* {.deprecated.} = playerList
 
-proc getPlayer*(name = "mpv"; setPlayer = true; mode = mTui): Player =
+proc getPlayer*(name = "mpv"; playerPath: string = ""; setPlayer = true; mode = mTui): Player =
   var player = Player()
+
+  if not playerList.contains(name):
+    let msg = "Invalid Player: " & name & ". Please select one of: " & $playerList
+    raise newException(ValueError, msg)
+
   playerLoader[name](player)
+
+  if playerPath != "":
+    player.name = playerPath
+  
   player.logMode = mode
   
   if setPlayer:
@@ -33,7 +42,7 @@ proc getPlayer*(name = "mpv"; setPlayer = true; mode = mTui): Player =
 
 proc availablePlayer*(raiseError = false): seq[string] =
   for player in playerList:
-    var peler = getPlayer(player, false, mSilent)
+    var peler = getPlayer(player, setPlayer=false, mode=mSilent)
     if peler.check():
       result.add peler.name
     continue
