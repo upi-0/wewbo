@@ -28,10 +28,10 @@ type
     sub: bool = true,
   ]    
 
-  FfmpegDownloader = ref object of CliApplication
+  FfmpegDownloader* = ref object of CliApplication
     outdir*: string
     targetExt: string = "mp4"
-    options: FfmpegDownloaderOption
+    options*: FfmpegDownloaderOption
 
     crf {.deprecated.}: int = 28
     fps {.deprecated.}: int = 25
