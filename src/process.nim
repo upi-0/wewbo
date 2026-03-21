@@ -21,7 +21,7 @@ type
     process {.deprecated.}: Process
     log*: tlog.WewboLogger
     logMode*: WewboLogMode
-    available*: bool = false
+    available* {.deprecated.}: bool = false
     specialLogLine*: SpecialLineProc
 
   CliError* = enum
@@ -32,28 +32,17 @@ method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
   discard
 
 proc check(app: CliApplication) : bool =
-  block firstChek:
-    let path = app.path
-    result = path.len >= 1 or path.len >= 1
-  
-  block secondCheck:
-    if not result:
-      try:
-        discard execCmd app.path
-        result = true
-      except OSError: 
-        result = false
+  app.path = app.name.findExe()
+  app.path.fileExists()
 
 method specialLineCB(cli: CliApplication) : SpecialLineProc {.gcsafe, base.} =
   (proc(x: string) : bool = x.contains("\r"))
 
 proc setUp[T: CliApplication](app: T) : T =
-  app.path = app.name.findExe()
-  app.available = app.check()
   app.specialLogLine = app.specialLineCB()
   app.log = useWewboLogger(app.name, mode = app.logMode)
 
-  if not app.available :
+  if not app.check() :
     app.failureHandler(erCommandNotFound)
     quit(1)
 
