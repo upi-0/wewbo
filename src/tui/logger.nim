@@ -163,6 +163,7 @@ proc warn*(l: WewboLogger, text: string) {.inline.} =
   l.render(text, color(fgYellow))
 
 proc error*(l: WewboLogger, text: string) =
+  l.writeBottomText("[?] Enter to continue") 
   l.render(text, color(fgRed))
   l.render("[?] Enter to continue", color(fgYellow))
 

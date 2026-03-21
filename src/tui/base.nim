@@ -30,6 +30,9 @@ proc renderBanner(tui: WewboTUI) =
 proc crop(tui: WewboTUI; text: var string) =
   text.crop()
 
+proc writeBottomText*(tui: WewboTUI; text =  "upi-0/wewbo " & ver) = 
+  tui.tb.write(0, tui.tb.height - 1, fgWhite, text)
+
 proc renderBorder(tui: WewboTUI) = 
   var tl = " $# " % [tui.head]
   tui.crop(tl)
@@ -63,7 +66,7 @@ proc renderBorder(tui: WewboTUI) =
   tui.tb.write(tui.tb.width - 1, y2, fg, "╝")
 
   # Easter EGG
-  tui.tb.write(0, tui.tb.height - 1, fgWhite, "upi-0/wewbo " & ver)
+  tui.writeBottomText()
 
 proc add*(tui: WewboTUI; text: string; fg: illwill.ForegroundColor) =
   tui.tb.write(2, tui.currentY, fg, text)

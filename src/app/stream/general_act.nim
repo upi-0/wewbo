@@ -67,6 +67,7 @@ proc prevEpisode(route: StreamRoute) =
   route.setTitle()
 
 proc peekLog(route: StreamRoute) =
+  route.logger.writeBottomText("[?] Enter to back.")
   route.logger.renderLogs()
   route.logger.tb.display()
   waitFor(Key.Enter)
