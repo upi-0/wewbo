@@ -57,12 +57,16 @@ proc newWewboLogger*(
   saveLog: bool = false;
   mode: WewboLogMode = mTui
 ) : WewboLogger {.gcsafe.} =  
+  let
+    h = if height <= 0: 24 else: height
+    w = if width <= 0: 80 else: width
+
   result = WewboLogger(
     name: name,
     head: name,
-    width: width,
-    height: height,
-    tb: newTerminalBuffer(width, height),
+    width: w,
+    height: h,
+    tb: newTerminalBuffer(w, h),
     konten: konten,
     saveLog: saveLog,
     mode: mode
