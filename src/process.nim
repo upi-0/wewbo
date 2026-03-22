@@ -58,7 +58,7 @@ proc setUp[T: CliApplication](app: T) : T =
 
   app    
 
-proc start(app: CliApplication, process: Process, message: string, checkup: int = 500): int =  
+proc start(app: CliApplication, process: Process, message: string, checkup: int = 50): int =  
   let
     isLinux = defined(linux)
     processLogger = newWewboLogger(message, mode = app.logMode)
@@ -73,8 +73,8 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
       # Linux doesn't fully support this feature.
       # There may be issues related to this in the future.
 
-      if not isLinux:
-        processLogger.setLineBuffer(processLogger.tb.height - 3, " " & line, bg=bgWhite, fg=fgBlack)
+      # if not isLinux:
+      processLogger.setLineBuffer(processLogger.tb.height - 3, " " & line, bg=bgWhite, fg=fgBlack)
     
     elif line != "":  
       processLogger.info(line)
@@ -93,8 +93,8 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
       lines.reset()
 
   proc handleOutputBufferLinux(strm: Stream; place: var string) =
-    if stream.readLine(place):
-      sendLog(place)
+    place = stream.readLine()  
+    place.sendLog()
 
   proc handleOutputBuffer(strm: Stream; place: var string) =
     try:

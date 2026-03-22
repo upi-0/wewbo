@@ -44,6 +44,14 @@ proc newFfmpegDownloader*(outdir: string; options: FfmpegDownloaderOption) : Ffm
 method failureHandler(ffmpeg: FfmpegDownloader, context: CLiError) =
   raise newException(ValueError, "ffmpeg is not detected on your system.")
 
+method specialLineCb(cli: CliApplication) : SpecialLineProc =
+  (
+    proc (x: string) : bool =
+      x.contains("speed=") or
+      x.contains("Opening") or
+      x.contains("hls @")
+  )
+
 proc setHeader(ffmpeg: FfmpegDownloader, ty, val: string) =
   let ngantukCok = {
     "userAgent" : "User-Agent",
