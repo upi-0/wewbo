@@ -3,5 +3,6 @@ type
   Paragraph* = string
   AITranslatorOption* = tuple[
     apiKey: string,
-    model: string
+    model: string,
+    baseUrl: string
   ]

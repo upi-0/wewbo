@@ -1,28 +1,34 @@
-import ../base
+import ../base, std/envvars
 
 type
   GeminiTranslator* = ref object of Translator
     defaultModel = "gemini-flash-lite-latest"
 
-proc newGeminiTranslator*(tl: var Translator; option: Option[AITranslatorOption] = none(AITranslatorOption)) =
+proc newGeminiTranslator*(tl: var Translator) =
   tl = GeminiTranslator()
   tl.host = "generativelanguage.googleapis.com"
   tl.name = "gemini"
-  tl.aiOption = option
 
-method processApiKey(tl: GeminiTranslator): Option[JsonNode] {.gcsafe.} =
+method processApiKey(tl: Translator) : Option[JsonNode] =
   let
+    apiKeyFieldName = "WB_" & tl.name.toUpper() & "_KEY"
     headerJson = newJObject()
 
-  if tl.aiOption.isSome:
-    headerJson["x-goog-api-key"] = %tl.aiOption.get.apiKey
+  var
+    apiKey = getEnv(apiKeyFieldName)    
+
+  if tl.requireApiKey and apiKey != "":
+    headerJson["x-goog-api-key"] = %apiKey
     return some headerJson
+
+  elif apiKey == "":
+    raise newException(ValueError, "The API KEY is missing. " & apiKeyFieldName)
 
   none JsonNode
 
 method translate*(tl: GeminiTranslator; content: string; inputLang: Languages): string =
   var
-    modelName = tl.aiOption.get.model
+    modelName = tl.defaultModel
 
   if modelName == "":
     tl.log.info("Using default model.")
