@@ -25,8 +25,16 @@ proc start*[T](route: Route[T]): void =
     except RouteActionError:
       route.logger.error("[$#] $#" % [route.logger.name, getCurrentExceptionMsg()])
     
-    except RouteRequestExit:
-      break
+    except RouteSignal:
+      let signal = cast[RouteSignal](getCurrentException())
+      
+      case signal.request
+      of reqBreak:
+        break
+      of reqClear:
+        route.actions = @[]
+      of reqExecProc:
+        signal.procedure()
 
 proc raiseError*[T: RouteActionError](route: Route; error: typedesc[T]; message: string): void =
   raise newException(error, message)
