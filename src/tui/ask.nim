@@ -1,5 +1,5 @@
 import
-  os, illwill, sequtils, json, sugar, tables, strutils
+  os, illwill, sequtils, json, sugar, tables, strutils, logger
 
 import
   base,
@@ -19,10 +19,13 @@ proc `[]`*[T: Questionable](inputs: openArray[T]; key: string): T =
 
   raise newException(ValueError, "Value not found: '$#'" % key)
 
-proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") : T {.gcsafe.} =
+proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") : T {.gcsafe.} =  
   let 
+    localLog = useWewboLogger("ask")
     page = newWewboTUI(title)
     itemsPerPage = terminalHeight() - 10
+
+  localLog.info("[ASK.$#] input len: $#" % [title, $input.len])
 
   var 
     pageEnd, pageStart: int
@@ -48,6 +51,9 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
 
   renderItems()
 
+  if input.len == 1:
+    return result
+
   while true:
     var key = getKey()
     case key
@@ -64,7 +70,10 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
       selectedContentIdx = input.len - 1
       renderItems()
     of Key.Enter:
-      return input[selectedContentIdx]      
+      block setResult:
+        result = input[selectedContentIdx]
+        localLog.info("[ASK.$#] select: $# | title: $#" % [title, $selectedContentIdx, result.title])
+      return result
     of Key.Escape:
       illwillDeinit()
       showCursor()

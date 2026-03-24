@@ -49,14 +49,14 @@ proc selectAndPlay(route: StreamRoute) =
     ses = route.session
     ex = ses.ex
     eps = ses.episodes[ses.episodeIndex]
-    mediaFormat = (ex.formats ex.get eps).ask()
+    mediaFormat = (ex.formats ex.get eps).ask("Select Format")
 
   route.data = $$mediaFormat
   route.realWatch()
 
 proc askEpisodeIdx(route: StreamRoute) =
   let s = route.session
-  s.episodeIndex = s.episodes.find s.episodes.ask()
+  s.episodeIndex = s.episodes.find s.episodes.ask("Select Episode")
   route.setTitle()
 
 proc nextEpisode(route: StreamRoute) =
