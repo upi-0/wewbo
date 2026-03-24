@@ -30,3 +30,5 @@ proc playerTest*(f: FullArgument) =
       typeExt: extMp4)
 
   player.watch(media)    
+  quit(0)
+  

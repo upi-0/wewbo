@@ -6,7 +6,8 @@ import
 import  
   version,
   terminal/[command, paramarg],
-  tui/[base, logger]
+  tui/[base, logger],
+  os
 
 const sourceHelp = "Select Source [kura|pahe|hime|taku]"    
 
@@ -43,7 +44,7 @@ let app = [
 proc main* = 
   try:
     app.start()
-  
+
   except ref Exception:
     if not loga.logger.isNil:
       loga.logger.close()
@@ -52,3 +53,8 @@ proc main* =
     echo "ERROR: " & getCurrentExceptionMsg()
 
 main()
+
+if commandLineParams().contains "--capture-error":
+  if not loga.logger.isNil:
+    loga.logger.exportLog()
+    echo "Error log saved to " & getCurrentDir() / "wewbo.txt"

@@ -73,6 +73,9 @@ proc peekLog(route: StreamRoute) =
   route.logger.tb.display()
   waitFor(Key.Enter)
 
+proc exportLogRoute(route: StreamRoute) =
+  route.logger.exportLog()
+
 proc routeAnime(route: StreamRoute) =
   let
     ses = route.session
@@ -82,7 +85,8 @@ proc routeAnime(route: StreamRoute) =
       action("Next Episode", nextEpisode),
       action("Prev Episode", prevEpisode),
       action("Select Episode", askEpisodeIdx),
-      action("Peek Log", peekLog)
+      action("Peek Log", peekLog),
+      action("Export Log", exportLogRoute)
     ]
     appAnime = app(anime.title, actions)
   
