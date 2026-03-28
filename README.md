@@ -15,6 +15,7 @@ Wewbo is a command-line-based application that allows you to search for anime, s
 | Kura | https://v8.kuramanime.tel | ❌ | Cryptography |
 | Pahe | https://animepahe.to | ✅ | - |
 | Taku | https://otakudesu.best | ✅ | - |
+| Kass | https://kaa.lt | ✅ | - |
 
 ## How to Use
 
