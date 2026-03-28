@@ -2,7 +2,7 @@ import
   base, illwill
 
 import  
-  ../logger, ../ask, ../base, os
+  ../logger, ../base, os
 
 type
   RouteActionProc*[T] = proc(prevRoute: Route[T]): void {.gcsafe.}

@@ -1,5 +1,5 @@
 import
-  os, illwill, sequtils, json, sugar, tables, strutils, logger
+  os, illwill, sequtils, json, tables, strutils, logger
 
 import
   base,
@@ -8,9 +8,6 @@ import
     option,
     router
   ]
-
-import
-  ../opt
 
 proc `[]`*[T: Questionable](inputs: openArray[T]; key: string): T =
   for input in inputs:
