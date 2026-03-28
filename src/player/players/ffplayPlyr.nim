@@ -12,7 +12,7 @@ proc setHeader(ffplay: FfplayPL, ty, val: string) =
   ffplay.args.add "$#: $#" % [ty, val]
 
 method specialLineCB(ffplay: FfplayPL) : SpecialLineProc =
-  (proc(x: string) : bool = x.contains("A-V"))
+  (proc(x: string) : bool = x.contains("A-V") or x.contains("\r"))
 
 method setUserAgent(ffplay: FfplayPL, val: string) =
   ffplay.setHeader("User-Agent", val)

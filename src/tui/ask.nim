@@ -1,5 +1,5 @@
 import
-  os, illwill, sequtils, json, sugar, tables, strutils
+  os, illwill, sequtils, json, tables, strutils, logger
 
 import
   base,
@@ -9,9 +9,6 @@ import
     router
   ]
 
-import
-  ../opt
-
 proc `[]`*[T: Questionable](inputs: openArray[T]; key: string): T =
   for input in inputs:
     if input.title == key:
@@ -19,10 +16,13 @@ proc `[]`*[T: Questionable](inputs: openArray[T]; key: string): T =
 
   raise newException(ValueError, "Value not found: '$#'" % key)
 
-proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") : T {.gcsafe.} =
+proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") : T {.gcsafe.} =  
   let 
+    localLog = useWewboLogger("ask")
     page = newWewboTUI(title)
     itemsPerPage = terminalHeight() - 10
+
+  localLog.info("[ASK.$#] input len: $#" % [title, $input.len])
 
   var 
     pageEnd, pageStart: int
@@ -48,6 +48,9 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
 
   renderItems()
 
+  if input.len == 1:
+    return result
+
   while true:
     var key = getKey()
     case key
@@ -64,7 +67,10 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
       selectedContentIdx = input.len - 1
       renderItems()
     of Key.Enter:
-      return input[selectedContentIdx]      
+      block setResult:
+        result = input[selectedContentIdx]
+        localLog.info("[ASK.$#] select: $# | title: $#" % [title, $selectedContentIdx, result.title])
+      return result
     of Key.Escape:
       illwillDeinit()
       showCursor()
@@ -76,34 +82,5 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
       renderItems()
 
     sleep(20)
-
-proc putEnum*[T: Questionable](plate: var OptionJson; inputs: seq[T]; key: string): void =
-  var res: seq[string]
-  
-  for input in inputs:
-    res.add(input.title)
-
-  plate.putEnum(res, key)  
-
-proc ask*(plate: var OptionJson; title: string = "Select Option"): void =
-  var cont: seq[OptionValuedQuestionable]
-  
-  # To OptionValuedQuestionable
-  for (key, val) in plate.pairs():
-    case val.kind
-    of JString:
-      cont.add optionQ(val.getStr(), key=key)
-    of JArray:
-      cont.add optionQ(val.getElems().map(x => x.getStr()), key=key)
-    of JInt:
-      cont.add optionQ($val.getInt(), key=key)  
-    else:
-      discard  
-
-  # To Json
-  discard cont.ask(title)
-  
-  for key in plate.keys:
-    plate[key] = %cont.get(key)
 
 export base

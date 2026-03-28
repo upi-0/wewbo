@@ -1,4 +1,3 @@
-from strutils import `%`
 import
   base,
   tables,
@@ -55,7 +54,7 @@ proc ask*(ex: BaseExtractor, title: string) : AnimeData =
   var listAnime = ex.animes(title)
   if listAnime.len < 1 :
     raise newException(AnimeNotFoundError, "No Anime Found")
-  return listAnime.ask()
+  return listAnime.ask(title)
 
 proc ask*(ex: BaseExtractor, ad: AnimeData) : tuple[index: int, episodes: seq[EpisodeData]] =
   var

@@ -73,7 +73,7 @@ proc start(subCommands: openArray[SubCommand]) =
       for subCmd in subCommands:
         if nuhun == subCmd.name:
           subCmd.exec()
-          quit(0)
+          return
   
       assert false
 

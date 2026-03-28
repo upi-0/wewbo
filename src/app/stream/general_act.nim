@@ -49,14 +49,14 @@ proc selectAndPlay(route: StreamRoute) =
     ses = route.session
     ex = ses.ex
     eps = ses.episodes[ses.episodeIndex]
-    mediaFormat = (ex.formats ex.get eps).ask()
+    mediaFormat = (ex.formats ex.get eps).ask("Select Format")
 
   route.data = $$mediaFormat
   route.realWatch()
 
 proc askEpisodeIdx(route: StreamRoute) =
   let s = route.session
-  s.episodeIndex = s.episodes.find s.episodes.ask()
+  s.episodeIndex = s.episodes.find s.episodes.ask("Select Episode")
   route.setTitle()
 
 proc nextEpisode(route: StreamRoute) =
@@ -73,6 +73,9 @@ proc peekLog(route: StreamRoute) =
   route.logger.tb.display()
   waitFor(Key.Enter)
 
+proc exportLogRoute(route: StreamRoute) =
+  route.logger.exportLog()
+
 proc routeAnime(route: StreamRoute) =
   let
     ses = route.session
@@ -82,7 +85,8 @@ proc routeAnime(route: StreamRoute) =
       action("Next Episode", nextEpisode),
       action("Prev Episode", prevEpisode),
       action("Select Episode", askEpisodeIdx),
-      action("Peek Log", peekLog)
+      action("Peek Log", peekLog),
+      action("Export Log", exportLogRoute)
     ]
     appAnime = app(anime.title, actions)
   

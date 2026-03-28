@@ -1,1 +1,0 @@
-# This is a beta version of the movie source and will be refactored in the future.
