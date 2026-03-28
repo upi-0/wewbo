@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  bump-version:
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+      env:
+        tag_name: ${{ github.event.release.tag_name }}
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+            ref: main
+
+        - name: Set up Git user
+          run: |
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        - name: Update files
+          run: |
+            VERSION="${{ env.tag_name }}"
+
+            sed -i "s/^version *= *\".*\"/version = \"$VERSION\"/" wewbo.nimble
+            echo "const ver* = \"$VERSION\"" > src/version.nim
+
+        - name: Commit and push changes
+          run: |
+            git add wewbo.nimble src/version.nim
+            
+            if ! git diff-index --quiet HEAD; then
+              git commit -m "chore: bump version to ${{ env.tag_name }}"
+              git push origin main
+            else
+              echo "No changes detected, skipping commit."
+            fi
+
+  build-linux-release:
+    runs-on: ubuntu-latest
+    if: github.event.release != null
+    needs: bump-version
+    steps:
+      - name: Install musl-tools
+        run: sudo apt-get update && sudo apt-get install --yes musl-tools      
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: 2.2.6
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Linux binary
+        run: nim musl -d:pcre -d:openssl -d:release --mm:arc src/wewbo.nim
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/wewbo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
