@@ -86,33 +86,4 @@ proc ask*[T: Questionable](input: seq[T]; title: string = "Anto make kacamata") 
 
     sleep(20)
 
-proc putEnum*[T: Questionable](plate: var OptionJson; inputs: seq[T]; key: string): void =
-  var res: seq[string]
-  
-  for input in inputs:
-    res.add(input.title)
-
-  plate.putEnum(res, key)  
-
-proc ask*(plate: var OptionJson; title: string = "Select Option"): void =
-  var cont: seq[OptionValuedQuestionable]
-  
-  # To OptionValuedQuestionable
-  for (key, val) in plate.pairs():
-    case val.kind
-    of JString:
-      cont.add optionQ(val.getStr(), key=key)
-    of JArray:
-      cont.add optionQ(val.getElems().map(x => x.getStr()), key=key)
-    of JInt:
-      cont.add optionQ($val.getInt(), key=key)  
-    else:
-      discard  
-
-  # To Json
-  discard cont.ask(title)
-  
-  for key in plate.keys:
-    plate[key] = %cont.get(key)
-
 export base

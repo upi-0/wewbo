@@ -36,7 +36,7 @@ method get*(ex: BaseExtractor, data: ExFormatData) : MediaFormatData {.base, gcs
 
 method subtitles*(ex: BaseExtractor; fmt: ExFormatData) : Option[seq[MediaSubtitle]] {.base, gcsafe.} = none(seq[MediaSubtitle])
 
-method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, s: int = -1; e: int = -1, fb: CallbacksGetAllEpisodes) : AllEpisodeFormats {.base.} = 
+method getAllEpisodeFormats*(ex: BaseExtractor, animeUrl: string, s: int = -1; e: int = -1, fb: CallbacksGetAllEpisodes) : AllEpisodeFormats {.base, deprecated.} = 
   let
     episodes = ex.episodes(animeUrl)
 
