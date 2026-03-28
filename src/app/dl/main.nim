@@ -17,7 +17,7 @@ proc setFormat(formatIndex: var int, values: seq[ExFormatData], spami: string = 
 proc setSubtitle(subtitleIndex: var int, values: seq[MediaSubtitle], spami: string = "") =
   subtitleIndex = values.find(values.ask(title=spami))
 
-proc download*(f: FullArgument) {.injectProcName.} =
+proc download*(f: FullArgument) {.injectProcName, deprecated.} =
   proc normalizeIndexProc(ss: int; dd: int) : CBNormalizeIndex =
     proc normalizeIndexRezult(max: int) : HSlice[int, int] {.gcsafe.} =
       var
