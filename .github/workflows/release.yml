@@ -65,7 +65,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Linux binary
-        run: nim musl -d:pcre -d:openssl -d:release --mm:arc src/wewbo.nim
+        run: |
+          nimble install illwill q htmlparser malebolgia zippy -y
+          nim musl -d:pcre -d:openssl -d:release --mm:arc src/wewbo.nim
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
