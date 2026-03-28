@@ -33,11 +33,6 @@ type
     targetExt: string = "mp4"
     options*: FfmpegDownloaderOption
 
-    crf {.deprecated.}: int = 28
-    fps {.deprecated.}: int = 25
-    itr {.deprecated.}: int = 0
-    sub {.deprecated.}: bool = true
-
 proc newFfmpegDownloader*(outdir: string; options: FfmpegDownloaderOption) : FfmpegDownloader =
   result = FfmpegDownloader(name: "ffmpeg", outdir: outdir, options: options).setUp()
 
@@ -47,9 +42,7 @@ method failureHandler(ffmpeg: FfmpegDownloader, context: CLiError) =
 method specialLineCb(cli: CliApplication) : SpecialLineProc =
   (
     proc (x: string) : bool =
-      x.contains("speed=") or
-      x.contains("Opening") or
-      x.contains("hls @")
+      x.contains("frame=")
   )
 
 proc setHeader(ffmpeg: FfmpegDownloader, ty, val: string) =
