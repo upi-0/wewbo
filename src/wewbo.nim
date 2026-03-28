@@ -43,6 +43,7 @@ let app = [
 
 proc main* = 
   try:
+    echo "wewbo " & ver
     app.start()
 
   except ref Exception:

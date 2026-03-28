@@ -1,4 +1,3 @@
-from strutils import `%`
 import
   base,
   tables,
