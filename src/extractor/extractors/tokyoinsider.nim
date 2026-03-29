@@ -39,12 +39,14 @@ method episodes*(ex: TokyoInsiderEX; url: string) : seq[EpisodeData] =
 
   for i in 1 ..< anchors.len:
     var index = anchors.len - i
-    let href = anchors[index].attr("href")
+    let
+      href = anchors[index].attr("href")
+      title = anchors[index].innerText()
 
     if href.contains(url & "/episode"):
       result.add EpisodeData(
         url: href,
-        title: "Episode " & $i
+        title: title
       )
 
 method formats*(ex: TokyoInsiderEX; url: string) : seq[ExFormatData] =
