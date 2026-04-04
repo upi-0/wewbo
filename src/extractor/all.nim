@@ -8,7 +8,7 @@ import
     kuramanime,
     otakudesu,
     hianime,
-    tokyoinsider
+    tokyoinsider,
     kickass
   ]
 
