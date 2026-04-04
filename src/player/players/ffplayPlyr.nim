@@ -25,6 +25,8 @@ method watch_mp4(ffplay: FfplayPL, media: MediaFormatData) =
   ffplay.args.add media.video
 
 method watch_m3u8(ffplay: FfplayPL, media: MediaFormatData) =
+  ffplay.args.add "-protocol_whitelist"
+  ffplay.args.add ffplay.protocolWhitelist
   ffplay.watch_mp4(media)
 
 export

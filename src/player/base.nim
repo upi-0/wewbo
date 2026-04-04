@@ -5,6 +5,7 @@ import ../process
 import ../media/types
 
 type Player = ref object of CliApplication
+  protocolWhitelist* = "file,crypto,data,http,https,tls,tcp,jpg,jpeg"
 
 method watch_mp4(player: Player, media: MediaFormatData) {.gcsafe, base.} = discard
 method watch_m3u8(player: Player, media: MediaFormatData) {.gcsafe, base.} = discard
