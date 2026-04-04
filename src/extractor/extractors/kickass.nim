@@ -4,7 +4,7 @@ import
 import
   htmlentity, sugar, json,
   options, strutils, sequtils,
-  marshal
+  marshal, oids
 
 import
   http/[client, response],
@@ -84,7 +84,7 @@ method get(ex: KickassEX; fmt: ExFormatData) : MediaFormatData =
   let
     data = fmt.addictional.get
     frame = data["frame"].to(M3u8Frame)
-    m3u8Path = getTempDir() / "wewbo-kass.m3u8"
+    m3u8Path = getTempDir() / "wewbo-kass-" & $genOid() & ".m3u8"
 
   block setMedia:
     result.video = m3u8Path
