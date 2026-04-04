@@ -51,6 +51,11 @@ method formats(ex: KickassEX; url: string) : seq[ExFormatData] =
   let
     episodePage = ex.connection.req(url).to_readable()
     iframeUrl = episodePage.getBetween(",src:\"", "\"}]").replace("\\u002F", "/")
+  
+  if iframeUrl.contains("\n"):
+    return
+
+  let
     iframePage = ex.connection.req(host=detectHost(iframeUrl), url=iframeUrl)
     iframeData = iframePage.to_readable().getBetween("props=\"", "\" ssr")
     formatData = iframeData.encode().parseJson()
