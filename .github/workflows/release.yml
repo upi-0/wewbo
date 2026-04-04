@@ -13,13 +13,16 @@ on:
 permissions:
   contents: write
 
+env:
+  tag_name: ${{ github.event.inputs.tag_name || github.event.release.tag_name }}
+  nim_ver: 2.2.6
+  mount_ver: 1.0.0
+
 jobs:
   bump-version:
       runs-on: ubuntu-latest
       permissions:
         contents: write
-      env:
-        tag_name: ${{ github.event.inputs.tag_name || github.event.release.tag_name }}
       steps:
         - name: Checkout repository
           uses: actions/checkout@v4
@@ -67,7 +70,7 @@ jobs:
       - name: Setup Nim
         uses: jiro4989/setup-nim-action@v2
         with:
-          nim-version: 2.2.6
+          nim-version: ${{ env.nim_ver }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Linux binary
@@ -81,3 +84,60 @@ jobs:
           files: build/wewbo
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows-release:
+    runs-on: windows-latest
+    if: github.event.release != null
+    needs: bump-version
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Download and extract wewbo DLL
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/upi-0/wewbo/releases/download/${{ env.mount_ver }}/wewbo-dll.zip" -OutFile "wewbo-dll.zip"
+          Expand-archive -Path "wewbo-dll.zip" -DestinationPath "build"
+
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: ${{ env.nim_ver }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Build Windows Library
+        run: |
+          nimble install illwill q htmlparser malebolgia zippy -y
+          nim c -d:release --mm:arc --multimethods:on "src/wewbo"
+
+      - name: Compress Builded Directory
+        run: Compress-archive -Path "build/*" -DestinationPath "wewbo-win.${{ env.tag_name }}.zip"
+
+      - name: Create scoop manifest json
+        run: | 
+          $version = "${{ env.tag_name }}"
+          $bin = "wewbo.exe"
+          $hash = "sha256:" + (Get-Filehash -Path "wewbo-win.${{ env.tag_name }}.zip").Hash
+          $url = "${{ github.server_url }}/${{ github.repository }}/releases/download/$version/wewbo-win.$version.zip"
+          $homepage = "https://github.com/upi-0/wewbo"
+          
+          $manifest = @{
+            version = $version
+            hash = $hash
+            url = $url
+            bin = $bin
+            homepage = $homepage
+          }
+
+          $manifest | ConvertTo-Json > wewbo.json
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            wewbo-win.${{ env.tag_name }}.zip
+            wewbo.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
