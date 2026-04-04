@@ -111,7 +111,7 @@ proc parse*(fa: FullArgument) {.gcsafe.} =
   for arg in fa.argLine :
     base = arg.split(fa.seperator, 1)
 
-    if (arg.contains(fa.seperator) and arg.contains("-")) or flags.contains(base[0]) :
+    if (arg.contains(fa.seperator) and arg.startsWith("-")) or flags.contains(base[0]) :
       option = fa.options.get base[0]
       faKey = option.name
 
