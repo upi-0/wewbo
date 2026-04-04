@@ -38,7 +38,9 @@ let app = [
       option("-u", "url", tString, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "Media URL"),
       option("-p", "player_path", tString, help="player path")
     ]
-  )
+  ),
+  newSubCommand("sources", sourceList, help="List available source."),
+  newSubCommand("-v", (proc(f: FullArgument) = discard), help="Version info.")
 ]
 
 proc main* = 
