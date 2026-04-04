@@ -67,25 +67,43 @@ method formats(ex: KickassEX; url: string) : seq[ExFormatData] =
       url = m3u8MasterUrl,
       headers = MediaHttpHeader(referer: "https://kaa.lt")
     )
-  
-  m3u8Format.formats.map(
-    frame => ExFormatData(
-      title: frame.resolution,
-      formatIdentifier: m3u8Format.audioUrl[0],
-      addictional: some parseJson($$frame) # Yang bener lu bang?
-    ) 
-  )
+
+  proc exFrame(frame: M3u8Frame): ExFormatData =
+    result = ExFormatData()
+    result.title = frame.resolution
+    result.formatIdentifier = frame.resolution
+    result.addictional = some %*{
+      "audio": m3u8Format.audioUrl[0],
+      "frame": parseJson $$frame,
+      "subtitles": formatData["subtitles"][1]
+    }
+
+  m3u8Format.formats.map(frame => exFrame(frame))
 
 method get(ex: KickassEX; fmt: ExFormatData) : MediaFormatData =
   let
-    frame = to(fmt.addictional.get, M3u8Frame)
+    data = fmt.addictional.get
+    frame = data["frame"].to(M3u8Frame)
     m3u8Path = getTempDir() / "wewbo-kass.m3u8"
 
   block setMedia:
     result.video = m3u8Path
     result.typeExt = extM3u8
 
-  writeFile(m3u8Path, writeDummyM3u8(frame, fmt.formatIdentifier))
+  writeFile(m3u8Path, writeDummyM3u8(frame, data["audio"].getStr()))
+
+method subtitles(ex: KickassEX; fmt: ExFormatData) : Option[seq[MediaSubtitle]] =
+  let subs = fmt.addictional.get["subtitles"]
+  var hasl : seq[MediaSubtitle]
+  
+  for sub in subs:
+    hasl.add MediaSubtitle(
+      title: sub[1]["name"][1].getStr(),
+      url: sub[1]["src"][1].getStr().replace("///", "//"),
+      lang: sub[1]["language"][1].getStr()
+    )
+
+  return some hasl    
 
 when isMainModule:
   var ex = BaseExtractor()
@@ -97,6 +115,9 @@ when isMainModule:
   let
     anime = ex.get ex.animes("slow loop")[0]
     episode = ex.get ex.episodes(anime)[0]
+    subs = ex.subtitles ex.formats(episode)[0]
+
+  for sub in subs.get:
+    echo sub.url
   
-  discard ex.get ex.formats(episode)[0]
 
