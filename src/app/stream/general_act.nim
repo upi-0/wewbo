@@ -9,6 +9,7 @@ type
   StreamSession* = tuple[
     ex: BaseExtractor,
     anime: AnimeData,
+    player: Player,
     episodes: seq[EpisodeData],
     episodeIndex: int
   ]  
@@ -31,7 +32,7 @@ proc setTitle(route: StreamRoute): void =
 proc realWatch(route: StreamRoute) =
   let
     ex = route.session.ex
-    player = getPlayer("mpv")
+    player = route.session.player
     mediaFormat = to[ExFormatData](route.data)
     media = ex.get mediaFormat
     subtitles = ex.subtitles(mediaFormat)
@@ -48,14 +49,19 @@ proc selectAndPlay(route: StreamRoute) =
     ses = route.session
     ex = ses.ex
     eps = ses.episodes[ses.episodeIndex]
-    mediaFormat = (ex.formats ex.get eps).ask()
+    listFormat = ex.formats ex.get eps
 
+  if listFormat.len < 1:
+    route.error("No format available")    
+    return
+
+  let mediaFormat = listFormat.ask("Select Format")
   route.data = $$mediaFormat
   route.realWatch()
 
 proc askEpisodeIdx(route: StreamRoute) =
   let s = route.session
-  s.episodeIndex = s.episodes.find s.episodes.ask()
+  s.episodeIndex = s.episodes.find s.episodes.ask("Select Episode")
   route.setTitle()
 
 proc nextEpisode(route: StreamRoute) =
@@ -67,9 +73,13 @@ proc prevEpisode(route: StreamRoute) =
   route.setTitle()
 
 proc peekLog(route: StreamRoute) =
+  route.logger.writeBottomText("[?] Enter to back.")
   route.logger.renderLogs()
   route.logger.tb.display()
   waitFor(Key.Enter)
+
+proc exportLogRoute(route: StreamRoute) =
+  route.logger.exportLog()
 
 proc routeAnime(route: StreamRoute) =
   let
@@ -80,7 +90,8 @@ proc routeAnime(route: StreamRoute) =
       action("Next Episode", nextEpisode),
       action("Prev Episode", prevEpisode),
       action("Select Episode", askEpisodeIdx),
-      action("Peek Log", peekLog)
+      action("Peek Log", peekLog),
+      action("Export Log", exportLogRoute)
     ]
     appAnime = app(anime.title, actions)
   
@@ -102,6 +113,10 @@ proc selectAnime*(route: StreamRoute) =
   let
     title = route.data
     animes = route.session.ex.animes(title)  
+
+  if animes.len < 1:
+    route.error("Anime Not Found.")
+    return
 
   route.ask(animes, routeAnime, title)
 

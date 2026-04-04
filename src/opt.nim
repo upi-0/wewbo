@@ -1,12 +1,100 @@
 import
-  json
+  json, sequtils,
+  tui/[ask, base],
+  tui/questionable/[base, option]
 
 from strutils import
   parseInt
 
-type
-  OptionJson* = JsonNode
+from sugar import
+  `=>`  
 
+type OptionArgs* = ref object of RootObj
+  jsonStructure = newJObject()
+  jsonValue = newJObject()
+
+proc s*(plate: JsonNode): string =
+  plate.getStr()
+
+proc n*(plate: JsonNode; default: int = 0): int =
+  plate.getStr().parseInt()
+
+proc b*(plate: JsonNode): bool =
+  plate.getStr() == "True"
+
+proc putEnum*(opt: OptionArgs; val: openArray[string]; key: string): void {.inline.} =
+  opt.jsonStructure[key] = %val
+
+proc putEnum*[T: Questionable](opt: OptionArgs; inputs: seq[T]; key: string) =
+  var res: seq[string]
+  
+  for input in inputs:
+    res.add(input.title)
+
+  opt.putEnum(res, key)   
+
+proc put*(opt: OptionArgs; val, key: string): void {.inline.} =
+  opt.jsonStructure[key] = %val
+
+proc putBool*(opt: OptionArgs; key: string): void {.inline.} =
+  opt.putEnum(["True", "False"], key)
+
+proc putRange*(opt: OptionArgs; sn, bp: int; key: string; default: int = sn) : void {.inline.} =
+  var s: seq[string]
+  if default != sn:
+    s.add $default
+  for i in sn..bp:
+    s.add $i
+  opt.jsonStructure[key] = %s
+
+proc ask*(plate: OptionArgs; title = "Select Option"): void =
+  var cont: seq[OptionValuedQuestionable]
+  
+  proc isAny(key: string) : bool =
+    try:
+      discard plate.jsonValue[key]
+      true
+    except KeyError:
+      false  
+  
+  # To OptionValuedQuestionable
+  for (key, val) in plate.jsonStructure.pairs():
+    case val.kind
+    of JString:
+      if isAny(key):
+        cont.add optionQ(plate.jsonValue[key].getStr(), key=key)  
+      else:  
+        cont.add optionQ(val.getStr(), key=key)
+    of JArray:
+      let enumVals = val.getElems().map(x => x.getStr())
+      if isAny(key):
+        cont.add optionQ(enumVals, key=key, optIdx = val.getElems().find(plate.jsonValue[key]))
+      else:  
+        cont.add optionQ(enumVals, key=key)
+    of JInt:
+      if isAny(key):
+        cont.add optionQ($plate.jsonValue[key].getInt(), key=key) 
+      else:  
+        cont.add optionQ($val.getInt(), key=key)  
+    else:
+      discard  
+
+  # To Json
+  discard cont.ask(title)
+  
+  for key in plate.jsonStructure.keys:
+    plate.jsonValue[key] = %cont.get(key)
+
+proc `[]`(opt: OptionArgs; key: string) : JsonNode =
+  opt.jsonValue[key]
+
+
+
+
+# DEPRECATED
+type
+  OptionJson* {.deprecated.} = JsonNode
+ 
 proc putEnum*(plate: var OptionJson; val: openArray[string]; key: string): void {.inline.} =
   plate[key] = %val
 
@@ -24,14 +112,34 @@ proc putRange*(plate: var OptionJson; sn, bp: int; key: string; default: int = s
     s.add $i
   plate[key] = %s
 
-proc s*(plate: OptionJson): string =
-  plate.getStr()
+proc putEnum*[T: Questionable](plate: var OptionJson; inputs: seq[T]; key: string): void {.deprecated.} =
+  var res: seq[string]
+  
+  for input in inputs:
+    res.add(input.title)
 
-proc n*(plate: OptionJson; default: int = 0): int =
-  plate.getStr().parseInt()
+  plate.putEnum(res, key)  
 
-proc b*(plate: OptionJson): bool =
-  plate.getStr() == "True"
+proc ask*(plate: var OptionJson; title: string = "Select Option"): void {.deprecated.} =
+  var cont: seq[OptionValuedQuestionable]
+  
+  # To OptionValuedQuestionable
+  for (key, val) in plate.pairs():
+    case val.kind
+    of JString:
+      cont.add optionQ(val.getStr(), key=key)
+    of JArray:
+      cont.add optionQ(val.getElems().map(x => x.getStr()), key=key)
+    of JInt:
+      cont.add optionQ($val.getInt(), key=key)  
+    else:
+      discard  
+
+  # To Json
+  discard cont.ask(title)
+  
+  for key in plate.keys:
+    plate[key] = %cont.get(key)
 
 export
   OptionJson
@@ -39,36 +147,3 @@ export
 export  
   put, putEnum, putRange, newJObject, `[]`
   
-when isMainModule:
-  import tui/ask, terminal
-  var opt: OptionJson = newJObject()
-
-  opt.put("default", "api")
-  opt.putEnum(["ffmpeg", "mpv", "vlc"], "player")
-  opt.putRange(1, 24, "fps")
-  
-  opt.ask()
-  
-  type
-    RijalOpt = ref tuple[status, hitam, nama: string]
-      
-    Rijal = ref object of RootObj
-      nama: string
-      umur: int
-      opt: OptionJson = newJObject()
-      oops: RijalOpt    
-
-  proc newRijal() : Rijal =
-    result = Rijal()
-    result.opt.put("-", "nama")
-    result.opt.putEnum(["On", "Off"], "status")
-    result.opt.putRange(0, 100, "hitam", 50)
-    result.opt.putBool("verbose")
-
-  let rijal = newRijal()
-  
-  rijal.opt.ask()  
-  eraseScreen()
-
-  echo rijal.opt["verbose"].b
-

@@ -57,12 +57,16 @@ proc newWewboLogger*(
   saveLog: bool = false;
   mode: WewboLogMode = mTui
 ) : WewboLogger {.gcsafe.} =  
+  let
+    h = if height <= 0: 24 else: height
+    w = if width <= 0: 80 else: width
+
   result = WewboLogger(
     name: name,
     head: name,
-    width: width,
-    height: height,
-    tb: newTerminalBuffer(width, height),
+    width: w,
+    height: h,
+    tb: newTerminalBuffer(w, h),
     konten: konten,
     saveLog: saveLog,
     mode: mode
@@ -163,10 +167,17 @@ proc warn*(l: WewboLogger, text: string) {.inline.} =
   l.render(text, color(fgYellow))
 
 proc error*(l: WewboLogger, text: string) =
+  l.writeBottomText("[?] Enter to continue") 
   l.render(text, color(fgRed))
-  l.render("[?] Enter to continue", color(fgYellow))
 
   waitFor(Key.Enter)
+
+proc exportLog*(l: WewboLogger; filename: string = "wewbo.txt") =
+  var cleanLogs: seq[string] = @[]
+  for log in l.logz:
+    let (text, _) = log.parseStyle()
+    cleanLogs.add(text)
+  writeFile(filename, cleanLogs.join("\n"))
 
 proc stop*(l: WewboLogger; save: bool = false) =
   if l.mode == mTui:

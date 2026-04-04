@@ -1,33 +1,28 @@
 import
   app/stream/main,
-  download,
+  app/dl/main,
+  app/player/main
+
+import  
   version,
   terminal/[command, paramarg],
-  tui/[base, logger]
+  tui/[base, logger],
+  os
 
-import
-  player/all
-
-const sourceHelp = "Select Source [kura|pahe|hime|taku]"
-
-proc listAvailablePlayers*(n: FullArgument) =
-  if players.len > 1 :
-    for pler in players :
-      echo "- " & pler
-
-  else :
-    echo "There are no players in your device."      
+const sourceHelp = "Select Source [kura|pahe|hime|taku]"    
 
 let app = [
   newSubCommand(
     "stream", stream, @[
-      option("-s", "source", tString, "hime", sourceHelp),
-      option("-p", "player", tString, help="Select Player [ffmpeg|mpv]")
+      option("-s", "source", tString, "pahe", sourceHelp),
+      option("-p", "player", tString, help="Select Player [ffmpeg|mpv]"),
+      option("--mpv", "mpv_path", tString, help="mpv path"),
+      option("--ffplay", "ffplay_path", tString, help="ffplay path")
     ], "Streaming Anime"
   ),
   newSubCommand(
-    "dl", download.download, @[
-      option("-s", "source", tString, "hime", sourceHelp),
+    "dl", download, @[
+      option("-s", "source", tString, "pahe", sourceHelp),
       option("--outdir", "outdir", tString, help="Define output directory"),
       option("-e", "episode", tString, help="Episode to download. (based on index)"),
       option("-fps", "fps", tInt, 24, "Set Video frame per second"),
@@ -36,15 +31,21 @@ let app = [
     ], "Downloading Anime"
   ),
   newSubCommand(
-    "--list-players", listAvailablePlayers, help="list availabale players in your device."
+    "player.list", playerList, help="list availabale players in your device."
+  ),
+  newSubCommand(
+    "player.test", playerTest, help="Player testing & verbosing.", argOpts = @[
+      option("-u", "url", tString, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "Media URL"),
+      option("-p", "player_path", tString, help="player path")
+    ]
   )
 ]
 
 proc main* = 
-  echo ver
   try:
+    echo "wewbo " & ver
     app.start()
-  
+
   except ref Exception:
     if not loga.logger.isNil:
       loga.logger.close()
@@ -53,3 +54,8 @@ proc main* =
     echo "ERROR: " & getCurrentExceptionMsg()
 
 main()
+
+if commandLineParams().contains "--capture-error":
+  if not loga.logger.isNil:
+    loga.logger.exportLog()
+    echo "Error log saved to " & getCurrentDir() / "wewbo.txt"

@@ -25,11 +25,22 @@ proc start*[T](route: Route[T]): void =
     except RouteActionError:
       route.logger.error("[$#] $#" % [route.logger.name, getCurrentExceptionMsg()])
     
-    except RouteRequestExit:
-      break
+    except RouteSignal:
+      let signal = cast[RouteSignal](getCurrentException())
+      
+      case signal.request
+      of reqBreak:
+        route.logger.error("[$#] $#" % [route.logger.name, signal.msg])
+      of reqClear:
+        route.actions = @[]
+      of reqExecProc:
+        signal.procedure()
 
-proc raiseError*[T: RouteActionError](route: Route; error: typedesc[T]; message: string): void =
+proc raiseError*[T: RouteActionError](route: Route; error: typedesc[T]; message: string): void {.deprecated: "Use `error` instead.".} =
   raise newException(error, message)
+
+proc error*[T: tuple](route: Route[T]; message: string): void =
+  raise RouteSignal(msg: message, request: reqBreak)
 
 proc setSession*[T: tuple](terlaluLama: Route[T]; defaultValue: T = T.default): void =
   terlaluLama.session = cast[ptr T](alloc0 sizeof T)

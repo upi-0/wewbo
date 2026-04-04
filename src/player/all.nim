@@ -6,6 +6,7 @@ import players/[
 ]
 from ../process import check
 from sequtils import toSeq
+import tui/logger
 
 type
   LoaderPlayerProc = proc(basePlayer: var Player): void {.gcsafe.}
@@ -17,14 +18,38 @@ proc loaderPlayerProcs: LoaderPlayerProcs =
 
 const
   playerLoader = loaderPlayerProcs()
-  playerList = playerLoader.keys.toSeq()
-  players* = playerList
+  playerList* = playerLoader.keys.toSeq()
+  players* {.deprecated.} = playerList
 
-proc getPlayer*(name: string = "mpv"): Player =
+proc getPlayer*(name = "mpv"; playerPath: string = ""; setPlayer = true; mode = mTui): Player =
   var player = Player()
-  playerLoader[name](player)
-  player.setUp()
 
+  if not playerList.contains(name):
+    let msg = "Invalid Player: " & name & ". Please select one of: " & $playerList
+    raise newException(ValueError, msg)
+
+  playerLoader[name](player)
+
+  if playerPath != "":
+    player.name = playerPath
+  
+  player.logMode = mode
+  
+  if setPlayer:
+    return player.setUp()
+
+  return player
+
+proc availablePlayer*(raiseError = false): seq[string] =
+  for player in playerList:
+    var peler = getPlayer(player, setPlayer=false, mode=mSilent)
+    if peler.check():
+      result.add peler.name
+    continue
+
+  if raiseError and result.len < 1:
+    raise newException(ValueError, "There is no player in your device.")
+  
 export
   Player,
   watch

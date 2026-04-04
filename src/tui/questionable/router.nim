@@ -2,7 +2,7 @@ import
   base, illwill
 
 import  
-  ../logger, ../ask
+  ../logger, ../base, os
 
 type
   RouteActionProc*[T] = proc(prevRoute: Route[T]): void {.gcsafe.}
@@ -20,7 +20,14 @@ type
     data*: string
     session*: ptr T
 
-  RouteRequestExit* = object of CatchableError  
+  RouteSignal* = ref object of CatchableError  
+    request*: RouteRequest
+    procedure*: proc() {.gcsafe.}
+
+  RouteRequest* = enum
+    reqBreak,    
+    reqClear,
+    reqExecProc
 
 proc setColour*(item: RouteAction; is_current: bool) : tuple[bg: BackgroundColor; fg: ForegroundColor] =
   result.bg = if is_current: bgGreen else: bgBlack
@@ -33,6 +40,6 @@ proc setColour*(item: RouteAction; is_current: bool) : tuple[bg: BackgroundColor
 proc handleExceptionKey*(item: RouteAction; tui: WewboTUI; key: Key): void =
   case key
   of Key.CtrlH, Key.Backspace:
-    raise newException(RouteRequestExit, "Linux Rijal")
+    raise RouteSignal(msg: "Linux Rijal", request: reqBreak)
   else:
     discard

@@ -11,11 +11,12 @@ Wewbo is a command-line-based application that allows you to search for anime, s
 ## Sources Status
 | Name | Web | Status | Issue |
 |---------|-----------|----| -- |
-| Hime  | https://hianime.to | ✅ | - |
-| Kura | https://v8.kuramanime.tel | ❌ | Cryptography |
 | Pahe | https://animepahe.to | ✅ | - |
 | Taku | https://otakudesu.best | ✅ | - |
 | Toyo | https://tokyoinsider.com | ✅ | - |
+| Kass | https://kaa.lt | ✅ | - |
+| Hime  | https://hianime.to | ❌ | End of Service |
+| Kura | https://v8.kuramanime.tel | ❌ | Cryptography |
 
 ## How to Use
 
@@ -30,42 +31,26 @@ wewbo stream [anime title]
 ```bash
 wewbo dl [anime title]
 ```
-
-### Options
-```bash
-wewbo 0.8
-list command: `wewbo [command][opts][narg]`
-
-stream
- -s             Select Source [kura|pahe|hime|taku]
- -p             Select Player [ffmpeg|mpv]
-
-dl
- -s             Select Source [kura|pahe|hime|taku]
- --outdir       Define output directory
- -fps           Set Video frame per second
- -crf           Set Video CRF (For compression)
- --no-sub       Dont include subtitle (Soft-sub only)
-```
 ### Usage Examples
 
 ```bash
-# Search and watch anime from Kuramanime (default)
-wewbo "naruto"
+# Search and watch anime from animepahe (default)
+wewbo "slow loop"
 
-# Search for anime from Animepahe
-wewbo "one piece:pahe"
+# Search for anime from otakudesu
+wewbo "slow loop:taku"
 
 # Search for anime using FFplay as player
-wewbo -p:ffplay "attack on titan"
+wewbo "attack on titan" -p:ffplay
 
-# Option Combinations
-wewbo -s:hime -p:mpv "demon slayer"
+# Search for anime from otakudesu using external MPV as player
+wewbo "demon slayer:taku" --mpv:/path/to/mpv
 ```
 
 ## Install
+Make sure [mpv](https://mpv.io) & [ffmpeg](https://www.ffmpeg.org/) are available in your `$PATH`. [Learn how](https://www.google.com/search?q=adding+app+to+path)
 ### Windows
-<b>Scoop</b> <br> process installation requires powershell 7
+<b>Scoop</b>
 ```powershell
 # Install Scoop
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -79,6 +64,12 @@ scoop install mpv https://github.com/upi-0/wewbo/releases/latest/download/wewbo.
 scoop install ffmpeg
 ```
 ### Linux
+
+<b>Curl</b>
+```bash
+curl -fsSL "https://raw.githubusercontent.com/upi-0/wewbo/refs/heads/main/install.sh" | bash
+```
+
 <b>AUR</b>
 ```bash
 yay -S wewbo
@@ -87,23 +78,10 @@ yay -S wewbo
 paru -S wewbo
 ```
 
-<b>Curl</b>
-```bash
-curl -L https://github.com/upi-0/wewbo/releases/latest/download/wewbo -o ~/.local/bin/wewbo
-chmod a+rx ~/.local/bin/wewbo  # Make executable
-```
-
-
-<b>Wget</b>
-```bash
-wget https://github.com/upi-/wewbo/releases/latest/download/wewbo -O ~/.local/bin/wewbo
-chmod a+rx ~/.local/bin/wewbo  # Make executable
-```
-
 ### Nim
 <b>Git Clone</b>
 ```bash
-git clone https://github.com/upi-0/wewbo && cd wewbo
+git clone https://github.com/upi-0/wewbo; cd wewbo
 nimble build -y
 ```
 <b>Install directly</b>
@@ -116,7 +94,7 @@ nimble install wewbo
 - [x] HTTP Cache (v0.7)
 - [x] Batch Downloader (v0.8)
 - [x] Concurrently Searching (v0.9)
-- [ ] Cleaned TUI (v0.9.5)
+- [x] Cleaned TUI (v0.9.5)
 - [ ] Fix all known bugs (v1)
 - [ ] Soft Sub translator (v1.1)
 - [ ] Load external extractor lib (v1.2)

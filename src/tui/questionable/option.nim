@@ -26,11 +26,12 @@ proc once(title, key: var string) =
   if key == "":
     key = title
 
-proc optionQ*(options: openArray[string]; title: string = ""; key: string = "") : OptionQuestionable =
+proc optionQ*(options: openArray[string]; title: string = ""; key: string = ""; optIdx = 0) : OptionQuestionable =
   result = OptionQuestionable()
   result.options = options.toSeq
   result.title = title
   result.key = key
+  result.optionIdx = optIdx
 
   once(result.title, result.key)
 

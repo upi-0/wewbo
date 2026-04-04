@@ -23,17 +23,19 @@ type
     xInf = "#EXTINF:"
     xVersion = "#EXT-X-VERSION:"
     xMediaSequence = "#EXT-X-MEDIA-SEQUENCE:"
+    xAudio = "#EXT-X-MEDIA:TYPE=AUDIO"
 
-  M3u8Frame = object of RootObj
+  M3u8Frame* = object of RootObj
     resolution*: string
     url*: string
     codecs*: string
     bandwidth*: int
     frameRate*: float
-    programId*: int
+    programId* {.deprecated.} : int
 
   M3u8MasterObject* = object of RootObj
     formats*: seq[M3u8Frame]
+    audioUrl*: seq[string]
     version*: int
     baseUrl*: string
     contentUrl*: string
@@ -55,15 +57,24 @@ proc parseM3u8Master*(host: string, url: string, headers: MediaHttpHeader): M3u8
     url = client.req(url).to_readable()
     lines = url.splitLines().toSeq
 
+  proc resolveUrl(uri: string) : string =
+    if uri.startsWith("/"):
+      result = "https://" & host & uri
+    else:
+      let basePath = contentUrl[0..<contentUrl.rfind("/") + 1]
+      result = basePath & uri  
+
   for idx, line in lines:
     case line.types
+    of xAudio:
+      result.audioUrl.add line.getBetween(",URI=\"", "\"").resolveUrl()
     of xVersion:
       result.version = line.getAfter("#EXT-X-VERSION:").parseInt
     of xStreamInf:
       let
         bandwidth = line.getAttribute("BANDWIDTH=")
         frameRateStr = line.getAttribute("FRAME-RATE=")
-        programIdStr = line.getAttribute("PROGRAM-ID=")
+        # programIdStr  = line.getAttribute("PROGRAM-ID=")
         uri = lines[idx + 1]
         resolvedUrl =
           if uri.startsWith("/"):
@@ -78,7 +89,7 @@ proc parseM3u8Master*(host: string, url: string, headers: MediaHttpHeader): M3u8
         codecs: line.getBetween("CODECS=\"", "\""),
         bandwidth: if bandwidth.len > 0: bandwidth.parseInt else: 0,
         frameRate: if frameRateStr.len > 0: frameRateStr.parseFloat else: 0.0,
-        programId: if programIdStr.len > 0: programIdStr.parseInt else: 0
+        # programId: if programIdStr.len > 0: programIdStr.parseInt else: 0
       )
 
     else:
@@ -134,3 +145,11 @@ proc `$`*(frame: M3u8Frame): string =
     result &= ", FPS: " & $frame.frameRate
   if frame.codecs.len > 0:
     result &= ", Codecs: " & frame.codecs
+
+proc writeDummyM3u8*(frame: M3u8Frame; audio: string): string =
+  result &= "#EXTM3U\n"
+  result &= "#EXT-X-INDEPENDENT-SEGMENTS\n"
+  result &= "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"stereo\",NAME=\"Japanese\",DEFAULT=YES,AUTOSELECT=YES,FORCED=YES,LANGUAGE=\"jpn\",URI=\"" & audio & "\"\n"
+  result &= "#EXT-X-STREAM-INF:BANDWITH=" & $frame.bandwidth & ",AUDIO=\"stereo\"\n"
+  result &= frame.url
+  

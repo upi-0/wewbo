@@ -12,7 +12,7 @@ proc setHeader(ffplay: FfplayPL, ty, val: string) =
   ffplay.args.add "$#: $#" % [ty, val]
 
 method specialLineCB(ffplay: FfplayPL) : SpecialLineProc =
-  (proc(x: string) : bool = x.contains("A-V"))
+  (proc(x: string) : bool = x.contains("A-V") or x.contains("\r"))
 
 method setUserAgent(ffplay: FfplayPL, val: string) =
   ffplay.setHeader("User-Agent", val)
@@ -25,6 +25,8 @@ method watch_mp4(ffplay: FfplayPL, media: MediaFormatData) =
   ffplay.args.add media.video
 
 method watch_m3u8(ffplay: FfplayPL, media: MediaFormatData) =
+  ffplay.args.add "-protocol_whitelist"
+  ffplay.args.add ffplay.protocolWhitelist
   ffplay.watch_mp4(media)
 
 export

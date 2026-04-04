@@ -11,7 +11,8 @@ import
   ../base,
   ../../http/[
     client,
-    response
+    response,
+    utils
   ]
 
 from algorithm import reverse  
@@ -31,7 +32,7 @@ type
 
 proc newOtakudesu*(ex: var BaseExtractor) =
   ex = OtakudesuEX(
-    host: "otakudesu.best",
+    host: "otakudesu.blog",
     name: "taku",
     http_headers: some(%*{
       "Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8"
@@ -124,7 +125,7 @@ method get*(ex: OtakudesuEX, data: ExFormatData) : MediaFormatData =
   response = ex.connection.req(
     "/wp-admin/admin-ajax.php",
     mthod = HttpPost,
-    payload = jsonToForm(payload)
+    payload = utils.jsonToForm(payload)
   )
 
   iframeUrl = (

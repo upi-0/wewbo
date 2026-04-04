@@ -28,21 +28,22 @@ type
     sub: bool = true,
   ]    
 
-  FfmpegDownloader = ref object of CliApplication
+  FfmpegDownloader* = ref object of CliApplication
     outdir*: string
     targetExt: string = "mp4"
-    options: FfmpegDownloaderOption
-
-    crf {.deprecated.}: int = 28
-    fps {.deprecated.}: int = 25
-    itr {.deprecated.}: int = 0
-    sub {.deprecated.}: bool = true
+    options*: FfmpegDownloaderOption
 
 proc newFfmpegDownloader*(outdir: string; options: FfmpegDownloaderOption) : FfmpegDownloader =
   result = FfmpegDownloader(name: "ffmpeg", outdir: outdir, options: options).setUp()
 
 method failureHandler(ffmpeg: FfmpegDownloader, context: CLiError) =
   raise newException(ValueError, "ffmpeg is not detected on your system.")
+
+method specialLineCb(cli: CliApplication) : SpecialLineProc =
+  (
+    proc (x: string) : bool =
+      x.contains("frame=")
+  )
 
 proc setHeader(ffmpeg: FfmpegDownloader, ty, val: string) =
   let ngantukCok = {

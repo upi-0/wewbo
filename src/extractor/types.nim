@@ -40,6 +40,6 @@ type
 
 # Exceptions
 type
-  AnimeNotFoundError* = object of ValueError
-    message: string
-  EpisodeNotFoundError* = object of CatchableError
+  ExtractorError* = ref object of CatchableError
+  AnimeNotFoundError* = object of ExtractorError
+  EpisodeNotFoundError* = object of ExtractorError
