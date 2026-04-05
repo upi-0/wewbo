@@ -22,7 +22,7 @@ type
     log*: tlog.WewboLogger
     logMode*: WewboLogMode
     available* {.deprecated.}: bool = false
-    specialLogLine*: SpecialLineProc
+    specialLogLine* {.deprecated.}: SpecialLineProc
 
   CliError* = enum
     erUnknown,
@@ -45,11 +45,10 @@ proc check(app: CliApplication) : bool =
   app.path = app.name.findExe()
   app.path.fileExists()
 
-method specialLineCB(cli: CliApplication) : SpecialLineProc {.gcsafe, base.} =
-  (proc(x: string) : bool = x.contains("\r"))
+method specialLine(cli: CliApplication; text: string) : bool {.gcsafe, base.} =
+  text.contains("\r") 
 
 proc setUp[T: CliApplication](app: T) : T =
-  app.specialLogLine = app.specialLineCB()
   app.log = useWewboLogger(app.name, mode = app.logMode)
 
   if not app.check() :
@@ -65,32 +64,17 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
 
   var
     outputBuffer: string
-    lines: seq[string]
     stream = process.peekableOutputStream()
 
   proc sendLog(line: string) =    
-    if app.specialLogLine(line):
-      # Linux doesn't fully support this feature.
-      # There may be issues related to this in the future.
-
-      # if not isLinux:
-      processLogger.setLineBuffer(processLogger.tb.height - 3, " " & line, bg=bgWhite, fg=fgBlack)
+    if app.specialLine(line):
+      processLogger.setLineBuffer(processLogger.tb.height - 3, " " & line.strip, bg=bgWhite, fg=fgBlack)
     
     elif line != "":  
       processLogger.info(line)
 
   proc handleOutputBufferWin(strm: Stream; place: var string) =
-    let allOutputLog = strm.readAll()
-
-    if allOutputLog.len > 0:
-      place &= allOutputLog
-      lines = place.split("\n")
-
-      for line in lines:
-        sendLog(line)
-      
-      place = lines[^1]
-      lines.reset()
+    sendLog strm.readLine()
 
   proc handleOutputBufferLinux(strm: Stream; place: var string) =
     place = stream.readLine()  
