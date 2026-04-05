@@ -3,12 +3,11 @@ import
   extractor/[all, types],
   tui/[base, logger, ask],
   media/[types, downloader],
-  terminal/paramarg
+  terminal/[command, paramarg]
 
 proc download2*(f: FullArgument = nil) =
   let
-    # (animeTitle, exName) = parseTitleAndSource(f.nargs[0], f["source"].getStr())
-    (animeTitle, exName) = parseTitleAndSource("slow loop", "toyo")    
+    (animeTitle, exName) = parseTitleAndSource(f.nargs[0], f["source"].getStr())
     extractor = getExtractor(exName)
     anime = extractor.ask(animeTitle)
     epds = extractor.episodes extractor.get anime
@@ -127,5 +126,10 @@ proc download2*(f: FullArgument = nil) =
   logger.error("Task Completed")    
   illwillDeinit()
 
+let
+  arguments = @[option("-s", "source", tString, "toyo", help="Select Source")]
+  aniDlCommand* = newSubCommand("ani-dl", download2, help="Ani-DL. Anime Downloader", argOpts = arguments)
+
 when isMainModule:
-  download2()
+  echo "ani-dl by wewbo"
+  [aniDlCommand].start()
