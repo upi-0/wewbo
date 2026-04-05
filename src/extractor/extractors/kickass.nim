@@ -1,15 +1,16 @@
 import
-  ../base, os
+  ../base
 
 import
   htmlentity, sugar, json,
   options, strutils, sequtils,
-  marshal, oids
+  marshal, oids, os
 
 import
   http/[client, response],
   media/extractHls,
-  tui/logger
+  tui/logger,
+  temp
 
 from utils import getBetween
 from http/utils import detectHost
@@ -82,15 +83,14 @@ method formats(ex: KickassEX; url: string) : seq[ExFormatData] =
 
 method get(ex: KickassEX; fmt: ExFormatData) : MediaFormatData =
   let
-    data = fmt.addictional.get
-    frame = data["frame"].to(M3u8Frame)
-    m3u8Path = getTempDir() / "wewbo-kass-" & $genOid() & ".m3u8"
+    data = get fmt.addictional
+    frame = data["frame"].to M3u8Frame
+    content = frame.writeDummyM3u8 getStr data["audio"]
+    m3u8Path = ex.temp.write(content, ".m3u8")
 
   block setMedia:
     result.video = m3u8Path
-    result.typeExt = extM3u8
-
-  writeFile(m3u8Path, writeDummyM3u8(frame, data["audio"].getStr()))
+    result.typeExt = extM3u8  
 
 method subtitles(ex: KickassEX; fmt: ExFormatData) : Option[seq[MediaSubtitle]] =
   let subs = fmt.addictional.get["subtitles"]
