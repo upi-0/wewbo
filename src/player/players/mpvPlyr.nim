@@ -11,8 +11,8 @@ proc newMpvPlayer*(basePlayer: var Player): void {.gcsafe.} =
 proc generateHeader(mpv: MpvPL, ky, val: string) {.inline.} =
   mpv.headerString &= "$#:$#," % [ky, val]   
 
-method specialLineCB(mpv: MpvPL) : SpecialLineProc =
-  return (proc(line: string) : bool = line.contains("AV"))
+method specialLine(mpv: MpvPL; text: string): bool =
+  text.contains("AV")
 
 method setUserAgent(mpv: MpvPL, val: string) {.inline.} =
   mpv.args.add "--user-agent=" & val

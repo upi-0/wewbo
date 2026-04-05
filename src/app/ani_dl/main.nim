@@ -8,7 +8,7 @@ import
 proc download2*(f: FullArgument = nil) =
   let
     # (animeTitle, exName) = parseTitleAndSource(f.nargs[0], f["source"].getStr())
-    (animeTitle, exName) = parseTitleAndSource("29", "taku")    
+    (animeTitle, exName) = parseTitleAndSource("slow loop", "toyo")    
     extractor = getExtractor(exName)
     anime = extractor.ask(animeTitle)
     epds = extractor.episodes extractor.get anime
@@ -63,8 +63,8 @@ proc download2*(f: FullArgument = nil) =
           selectedFormatResolution
         result = ex.get allFormat[selectedFormatIndex]
       except Exception:        
-        let tempSelectedFormatIndex = selectFormat allFormat
-        result = ex.get allFormat[tempSelectedFormatIndex]
+        selectedFormatIndex = selectFormat allFormat
+        result = ex.get allFormat[selectedFormatIndex]
 
       if args["With Subtitle"].b: 
         let episodeSubtitles = ex.subtitles allFormat[selectedFormatIndex]
