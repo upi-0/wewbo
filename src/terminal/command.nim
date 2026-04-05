@@ -46,7 +46,7 @@ proc showHelp(subCommand: SubCommand) =
   echo perLine([subCommand.name, subCommand.help], 16)
 
   for arg in subCommand.args.options :
-    echo " " & perLine([arg.flag, arg.help], 15)
+    echo "   " & perLine([arg.flag, arg.help], 13)
 
 proc showHelp(subCommnads: openArray[SubCommand]) =
   echo "list command: `wewbo [command][opts][narg]`\n"
