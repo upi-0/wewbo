@@ -9,13 +9,14 @@ proc playerList*(n: FullArgument) =
     echo "- " & pler 
 
 proc playerTest*(f: FullArgument) =
+  let hasihite = availablePlayer(true)
+
   if f.nargs.len < 1:
-    echo "Invalid player name: "
+    echo "Select player: ", hasihite
     quit(1)
 
   let
     playerName = f.nargs[0]    
-    hasihite = availablePlayer(true)
     playerPath = f["player_path"].getStr()
 
   if not hasihite.contains(playerName) and playerPath.len < 1:
@@ -32,3 +33,16 @@ proc playerTest*(f: FullArgument) =
   player.watch(media)    
   quit(0)
   
+
+proc player*(n: FullArgument) =
+  if n["list"].getBool():
+    n.playerList()
+    quit(0)    
+
+  if n["test"].getBool():
+    n.playerTest()
+    quit(0)
+
+  echo "Usage: "
+  echo "--test:mpv", " test MPV player"
+  echo "--list", " list player"

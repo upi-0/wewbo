@@ -17,24 +17,26 @@ type
 proc newAnimepahe*(extractor: var BaseExtractor) =
   extractor = AnimepaheEX(
     name: "pahe",
-    host: "animepahe.si",
+    host: "animepahe.com",
     http_headers: some(%*{
       "Cookie" : "__ddgid_=yF8PHfOsX4Hja1YA; __ddg2_=txfoen42BeK4Kp13; __ddg1_=rxGMTN3zVY213Uxo849v; res=1080; aud=jpn; av1=0; XSRF-TOKEN=eyJpdiI6InRyUHlDUVZZMGY0SGhHRFdodHoxNVE9PSIsInZhbHVlIjoiME5FZUtub1FKNmVhQ0FOZmtBNXpTUlVZalFJTjE0bm9XYlVxT3lCSStzUzYvbjhOZys5TmVZNXlXMCt6cmN5YVdaZ3VhVlVJRFBkQ28rRE9sTURxeE5YY1laellTQ1lYWnFHWmJVb3JEVDZ1ZHZVUS9sYitBb2dIVlFwN1laWGYiLCJtYWMiOiI3ZDNhYTdiM2Q1NTM4YTJjYjM1ZTM4OTVlODc5NzJjNzNhY2YzNGFkZTdjNzk2MjFlM2ZiYmE4NTA4YjgzNjRkIiwidGFnIjoiIn0%3D;",
-      "Referer" : "https://animepahe.si"
+      "Referer" : "https://animepahe.com"
     }),
   )
 
 method animes*(ex: AnimepaheEX, title: string) : seq[AnimeData] =
   let res_json = ex.connection.req("/api?m=search&q=" & title).to_json()
-  if res_json.hasKey("data") :
-    for anime in res_json["data"] :
-      result.add AnimeData(
-        title: anime["title"].getStr(),
-        url: ex.connection.normalize_url(
-          "/anime/" & anime["session"].getStr()
-        )
+  
+  if not res_json.hasKey("data"):
+    return @[]
+
+  for anime in res_json["data"] :
+    result.add AnimeData(
+      title: anime["title"].getStr(),
+      url: ex.connection.normalize_url(
+        "/anime/" & anime["session"].getStr()
       )
-  else : raise newException(AnimeNotFoundError, "Animepahe Gagal jir")      
+    )     
 
 proc get_by_index(ex: AnimepaheEX, session: string, index: int = 1, sort: string = "asc") : tuple[all: JsonNode, total: int] =
   let

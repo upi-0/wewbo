@@ -9,6 +9,10 @@ from strutils import
 from sugar import
   `=>`  
 
+type OptionArgs* = ref object of RootObj
+  jsonStructure = newJObject()
+  jsonValue = newJObject()
+
 proc s*(plate: JsonNode): string =
   plate.getStr()
 
@@ -17,10 +21,6 @@ proc n*(plate: JsonNode; default: int = 0): int =
 
 proc b*(plate: JsonNode): bool =
   plate.getStr() == "True"
-
-type OptionArgs* = ref object of RootObj
-  jsonStructure = newJObject()
-  jsonValue = newJObject()
 
 proc putEnum*(opt: OptionArgs; val: openArray[string]; key: string): void {.inline.} =
   opt.jsonStructure[key] = %val
@@ -47,7 +47,7 @@ proc putRange*(opt: OptionArgs; sn, bp: int; key: string; default: int = sn) : v
     s.add $i
   opt.jsonStructure[key] = %s
 
-proc ask*(plate: OptionArgs; title: string = "Select Option"): void =
+proc ask*(plate: OptionArgs; title = "Select Option"): void =
   var cont: seq[OptionValuedQuestionable]
   
   proc isAny(key: string) : bool =

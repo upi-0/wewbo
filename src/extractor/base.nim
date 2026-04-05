@@ -2,7 +2,8 @@ import
   xmltree,
   q,
   strutils,
-  options
+  options,
+  os
 
 import  
   ./types,
@@ -13,6 +14,7 @@ import
 
 import ../media/[types]
 import ../tui/logger
+import temp
 
 type
   BaseExtractor {.inheritable.} = ref object of RootObj
@@ -22,6 +24,7 @@ type
     http_headers*: Option[JsonNode] = none(JsonNode)
     connection*: HttpConnection
     lg*: WewboLogger
+    temp*: TempManager
     supportCompessed*: bool = true
     initialized: bool = false
 
@@ -95,11 +98,13 @@ proc info*(ex: BaseExtractor, text: string) =
 
 proc init*[T: BaseExtractor](
   extractor: T,
-  proxy: string = "",
-  userAgent: string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
-  resolution: FormatResolution = best,
-  logMode: WewboLogMode = mTui
+  proxy = "",
+  userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
+  tempDir = getTempDir(),
+  resolution = best,
+  logMode = mTui
 ) =
+  extractor.temp = newTempManager(tempDir)
   extractor.lg = useWewboLogger(extractor.name, mode=logMode)
   extractor.userAgent = userAgent
   extractor.connection = newHttpConnection(
@@ -111,17 +116,14 @@ proc init*[T: BaseExtractor](
   )
   extractor.initialized = true
 
-proc main_el*(extractor: BaseExtractor, url: string, query: string) : XmlNode =
-  extractor.connection
-    .req(url)
-    .to_selector()
-    .select(query)[0]
-
 proc main_els*(extractor: BaseExtractor, url: string, query: string) : seq[XmlNode] =
   extractor.connection
     .req(url)
     .to_selector()
     .select(query)
+
+proc main_el*(extractor: BaseExtractor, url: string, query: string) : XmlNode =
+  main_els(extractor, url, query)[0]
 
 proc close*(extractor: BaseExtractor) =
   extractor.lg.stop()

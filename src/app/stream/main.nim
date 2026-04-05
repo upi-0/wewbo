@@ -30,7 +30,7 @@ proc stream*(f: FullArgument) {.gcsafe, injectProcName.} =
       discard availablePlayer() # Raise error due no player was detected.
 
   if f.nargs.len < 1:
-    raise newException(ValueError, "Try: `wewbo [Anime Title]`")
+    raise newException(ValueError, "Try: `wewbo 'Anime Title'`")
 
   let
     (title, exName) = parseTitleAndSource(
@@ -48,3 +48,8 @@ proc stream*(f: FullArgument) {.gcsafe, injectProcName.} =
   
   route.selectAnime()
   illwillDeinit()
+
+proc sourceList*(f: FullArgument) {.gcsafe.} =
+  for exName in listExtractor():
+    echo "- " & exName
+

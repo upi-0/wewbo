@@ -1,4 +1,3 @@
-from strutils import `%`
 import
   base,
   tables,
@@ -8,7 +7,9 @@ import
     animepahe,
     kuramanime,
     otakudesu,
-    hianime
+    hianime,
+    tokyoinsider,
+    kickass
   ]
 
 import
@@ -22,6 +23,8 @@ proc sukamtoList(): Table[string, ExtractorInitProc] =
   result["hime"] = newHianime
   result["kura"] = newKuramanime
   result["taku"] = newOtakudesu
+  result["toyo"] = newTokyoInsider
+  result["kass"] = newKickass
 
 const sukamto = sukamtoList()
 
