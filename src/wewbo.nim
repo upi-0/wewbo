@@ -30,13 +30,11 @@ let app = [
       option("--no-sub", "nsub", tBool, false, "Dont include subtitle (Soft-sub only)")
     ], "Downloading Anime"
   ),
-  newSubCommand(
-    "player.list", playerList, help="list availabale players in your device."
-  ),
-  newSubCommand(
-    "player.test", playerTest, help="Player testing & verbosing.", argOpts = @[
-      option("-u", "url", tString, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "Media URL"),
-      option("-p", "player_path", tString, help="player path")
+  newSubCommand("player", player, help="Player Test & List", argOpts = @[
+      option("--test", "test", tBool, false, "Test Player"),
+      option("--list", "list", tBool, false, "List Player"),
+      option("-u", "url", tString, "https://huggingface.co/buckets/upi-0/astungkara/resolve/bon-apetit-op.mp4", "Media URL"),
+      option("-p", "player_path", tString, help="player path")      
     ]
   ),
   newSubCommand("sources", sourceList, help="List available source."),
