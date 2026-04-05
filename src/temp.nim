@@ -5,8 +5,13 @@ type TempManager* = ref object of RootObj
   dir: string
   log: WewboLogger
 
-proc clearAll*(temp: TempManager): void =
+iterator all*(temp: TempManager): string =
   for tempFile in walkFiles(temp.dir / "*"):
+    if tempFile.contains("wewbo-"):
+      yield tempFile
+
+proc clearAll*(temp: TempManager): void =
+  for tempFile in temp.all:
     temp.log.info("Deleting: " & tempFile)
     tempFile.removeFile()
 

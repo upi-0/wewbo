@@ -1,7 +1,8 @@
 import
   app/stream/main,
   app/dl/main,
-  app/player/main
+  app/player/main,
+  app/temp/main
 
 import  
   version,
@@ -35,6 +36,11 @@ let app = [
       option("--list", "list", tBool, false, "List Player"),
       option("-u", "url", tString, "https://huggingface.co/buckets/upi-0/astungkara/resolve/bon-apetit-op.mp4", "Media URL"),
       option("-p", "player_path", tString, help="player path")      
+    ]
+  ),
+  newSubCommand("temp", tempManagement, help="Temp Management", argOpts = @[
+      option("--list", "list", tBool, false, "List Temp Files"),
+      option("--clear", "clear", tBool, false, "Clear Temp Files")
     ]
   ),
   newSubCommand("sources", sourceList, help="List available source."),
