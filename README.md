@@ -89,16 +89,6 @@ nimble build -y
 nimble install wewbo
 ```
 
-## Roadmap
-
-- [x] HTTP Cache (v0.7)
-- [x] Batch Downloader (v0.8)
-- [x] Concurrently Searching (v0.9)
-- [x] Cleaned TUI (v0.9.5)
-- [ ] Fix all known bugs (v1)
-- [ ] Soft Sub translator (v1.1)
-- [ ] Load external extractor lib (v1.2)
-
 ---
 
 ## For Developers
