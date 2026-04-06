@@ -4,7 +4,7 @@ import
 import
   htmlentity, sugar, json,
   options, strutils, sequtils,
-  marshal, oids, os
+  marshal
 
 import
   http/[client, response],
@@ -57,7 +57,7 @@ method formats(ex: KickassEX; url: string) : seq[ExFormatData] =
     return
 
   let
-    iframePage = ex.connection.req(host=detectHost(iframeUrl), url=iframeUrl)
+    iframePage = ex.connection.req(url=iframeUrl)
     iframeData = iframePage.to_readable().getBetween("props=\"", "\" ssr")
     formatData = iframeData.encode().parseJson()
 
