@@ -1,5 +1,11 @@
 import
-  types, std/re, strutils
+  types, std/re, strutils, languages
+
+type FormatIdentity* = tuple[
+  res: MediaResolution,
+  ext: MediaExt,
+  lang: Languages,
+]
 
 proc detectResolution*(name: string) : MediaResolution =
   const
@@ -20,6 +26,11 @@ proc detectExt*(name: string) : MediaExt =
   if name.contains(".m3u8"):
     return extM3u8
   MediaExt.extNone
+
+proc detectFormat*(title: string) : FormatIdentity =
+  result.res = title.detectResolution()
+  result.ext = title.detectExt()
+  result.lang = title.detectLang()
 
 export
   MediaResolution, MediaExt
