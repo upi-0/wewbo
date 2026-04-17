@@ -1,4 +1,4 @@
-import ../base
+import ../base, uri
 
 type
   GoogleTranslator* = ref object of Translator
@@ -24,7 +24,7 @@ method translate*(tl: GoogleTranslator; content: string; inputLang: Languages = 
   let
     sourceLang = inputLang.getCountryCode()
     targetLang = tl.outputLang.getCountryCode()
-    url = "/m?sl=$#&tl=$#&hl=$#&q=" % [sourceLang, targetLang, sourceLang] & content
+    url = "/m?sl=$#&tl=$#&hl=$#&q=" % [sourceLang, targetLang, sourceLang] & content.encodeUrl()
     resp = tl.con.req(url)
 
   let    
