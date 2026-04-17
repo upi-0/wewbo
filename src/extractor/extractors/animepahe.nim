@@ -189,7 +189,7 @@ proc get_m3u8_data(url: string, page: XmlNode) : array[8, string] =
 method get*(ex: AnimepaheEX, format: ExFormatData) : MediaFormatData =
   ex.info("Get Format Information")
   let
-    format_page = ex.connection.req(format.format_identifier, host="kwik.cx").to_selector()
+    format_page = ex.connection.req(format.format_identifier).to_selector()
     m3u8_data = format.format_identifier.get_m3u8_data(format_page)
 
   result.video = "https://vault-$vault.$host.top/stream/$vault/$index/$m3u8_id/uwu.m3u8" % m3u8_data

@@ -92,7 +92,6 @@ proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = no
     base_headers.add ("Accept-Encoding", "gzip")
 
   base_headers.add(("Accept", join(accept, ";")))
-  base_headers.add(("Host", host))
   cptr.logMode = mode
 
   let
@@ -170,12 +169,9 @@ proc jsonToForm*(j: JsonNode): string {.deprecated: "use http/utils instead".} =
 
   result = parts.join("&")
 
-proc reqq*(client: HttpClient, url: string, mthod: HttpMethod, payload: string, host: string = ""): Response =
+proc reqq*(client: HttpClient, url: string, mthod: HttpMethod, payload: string): Response =
   var
     newHeader: seq[(string, string)]
-  
-  if host.len > 0:
-    newHeader.add(("Host", host))
 
   let
     withPayload = payload != "" and payload != "{}"
@@ -205,6 +201,9 @@ proc reqq*(client: HttpClient, url: string, mthod: HttpMethod, payload: string, 
       url, mthod
     )
 
+proc reqq*(client: HttpClient, url: string, mthod: HttpMethod, payload: string, host: string): Response {.deprecated: "Param 'host' is deprecated".} =
+  reqq(client, url, mthod, payload)
+
 proc extractCookie(cookies: string, cookie: string) : string =
   for line in cookies.split("\n"):
     let cookieValue = line.split(";")[0].strip()
@@ -221,7 +220,6 @@ proc req*(
   url: string,
   mthod: HttpMethod = HttpGet,
   save_cookie: bool = true,
-  host: string = "",
   payload: string = "",
   useCache: bool = false
 ): Response {.gcsafe.} =
@@ -232,11 +230,11 @@ proc req*(
   proc loadContent() : Response =
     connection.info(url)
     try:
-      return connection.client.reqq(url, mthod, payload, host)
+      return connection.client.reqq(url, mthod, payload)
     except ProtocolError:
       connection.info("Renew Http Client")
       connection.reNewClient()
-      return connection.client.reqq(url, mthod, payload, host)
+      return connection.client.reqq(url, mthod, payload)
 
   if useCache and mthod == HttpGet :
     if connection.cache.has(url) :
@@ -260,13 +258,32 @@ proc req*(
   url: string,
   mthod: HttpMethod = HttpGet,
   save_cookie: bool = true,
-  host: string = "",
+  host: string,
+  payload: string = "",
+  useCache: bool = false
+): Response {.deprecated: "Param 'host' is deprecated".} =
+  req(connection, url, mthod, save_cookie, payload, useCache)
+
+proc req*(
+  connection: HttpConnection,
+  url: string,
+  mthod: HttpMethod = HttpGet,
+  save_cookie: bool = true,
   useCache: bool = false,
   payload: JsonNode
 ): Response {.gcsafe.} =
-  req(connection, url, mthod, save_cookie, host, $payload, useCache)
+  req(connection, url, mthod, save_cookie, $payload, useCache)
 
-export HttpConnection, Response, HttpMethod
+proc req*(
+  connection: HttpConnection,
+  url: string,
+  mthod: HttpMethod = HttpGet,
+  save_cookie: bool = true,
+  host: string,
+  useCache: bool = false,
+  payload: JsonNode
+): Response {.deprecated: "Param 'host' is deprecated".} =
+  req(connection, url, mthod, saveCookie, $payload, useCache)
 
 proc close*(connection: HttpConnection) =  
   # Stop
@@ -276,3 +293,5 @@ proc close*(connection: HttpConnection) =
   # Set to nill
   connection.log = nil
   connection.client = nil
+
+export HttpConnection, Response, HttpMethod

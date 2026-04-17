@@ -141,7 +141,7 @@ method get*(ex: OtakudesuEX, data: ExFormatData) : MediaFormatData =
     of sPdrain :
       video = iframeUrl
     else :
-      response = ex.connection.req(iframeUrl, mthod = HttpGet, host = "desustream.info")
+      response = ex.connection.req(iframeUrl, mthod = HttpGet)
       video = response.to_selector().select("source")[0].attr("src")
 
     let
