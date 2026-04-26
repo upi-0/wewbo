@@ -13,7 +13,7 @@ proc newFfmpegDownloader*(outdir: string; options: FfmpegDownloaderOption; logMo
   ffw.newFfmpegWrapper(outdir = outdir, options = options, logMode = logMode)
 
 proc download*(ffmpeg: FfmpegDownloader, input: MediaFormatData, output: string) : int =
-  ffw.download(ffmpeg, input, output)
+  ffw.downloadMedia(ffmpeg, input, output)
 
 proc downloadAll*(ffmpeg: FfmpegDownloader, inputs: openArray[MediaFormatData], outputs: openArray[string]) : seq[int] =
-  ffw.downloadAll(ffmpeg, inputs, outputs)
+  ffw.downloadMedias(ffmpeg, inputs, outputs)
