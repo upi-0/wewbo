@@ -58,7 +58,7 @@ Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 
 # Install wewbo & mpv
 scoop bucket add extras
-scoop install mpv https://github.com/upi-0/wewbo/releases/latest/download/wewbo.json
+scoop install mpv https://upi.web.id/wewbo.json
 
 # Install ffmpeg (recommended)
 scoop install ffmpeg
@@ -67,7 +67,7 @@ scoop install ffmpeg
 
 <b>Curl</b>
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/upi-0/wewbo/refs/heads/main/install.sh" | bash
+curl -fsSL "https://upi.web.id/wewbo.sh" | bash
 ```
 
 <b>AUR</b>
