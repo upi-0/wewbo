@@ -1,8 +1,9 @@
 import
-  tui/ask, strutils
+  tui/ask, strutils, sugar, sequtils
 
 type
   Languages* = enum
+    laUnknown = "unkown",
     laId = "indonesian,id",
     laSu = "sundanese,su"
     laEn = "english,en",
@@ -66,3 +67,19 @@ proc getLang*(lang: string) : Languages =
   for la in Languages:
     if lang == $la:
       return la
+
+proc detectLang*(sentence: string) : Languages = 
+  for la in Languages:
+    let
+      whiteList = ($la).split(",")
+      kalimat = sentence
+        .replace("[")
+        .replace("]")
+        .replace("(")
+        .replace(")")
+        .replace("")
+
+    if kalimat.splitWhitespace.map(word => whiteList.contains word.toLower).contains(true):
+      return la
+  
+  Languages.laUnknown

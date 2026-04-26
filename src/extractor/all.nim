@@ -3,6 +3,7 @@ import
   tables,
   types,
   strutils,
+  options,
   extractors/[
     animepahe,
     kuramanime,
@@ -13,7 +14,8 @@ import
   ]
 
 import
-  ../tui/[ask, logger]
+  ../tui/[ask, logger],
+  media/format
 
 type
   ExtractorInitProc = proc(ex: var BaseExtractor) {.gcsafe.}
@@ -75,6 +77,14 @@ proc ask*(ex: BaseExtractor, ad: AnimeData) : tuple[index: int, episodes: seq[Ep
   index = listEpisode.find(episode)
 
   return (index: index, episodes: listEpisode)  
+
+proc ask*(ex: BaseExtractor; formats: seq[ExFormatData]; prevSelectedFormat: Option[FormatIdentity] = none(FormatIdentity)): ExFormatData =
+  if prevSelectedFormat.isSome:
+    for format in formats:
+      if prevSelectedFormat.get == detectFormat(format.title):
+        return format
+
+  formats.ask("Select Format")    
 
 export
   BaseExtractor,

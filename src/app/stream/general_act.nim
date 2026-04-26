@@ -1,9 +1,10 @@
 import ../tui
 from tui/utils import waitFor
 
-import extractor/all
-import player/all
-import marshal, options
+import
+  extractor/all, player/all, media/format
+import
+  marshal, options
 
 type
   StreamSession* = tuple[
@@ -11,7 +12,8 @@ type
     anime: AnimeData,
     player: Player,
     episodes: seq[EpisodeData],
-    episodeIndex: int
+    episodeIndex: int,
+    selectedFormat: Option[FormatIdentity] = none(FormatIdentity)
   ]  
 
   StreamRoute = Route[StreamSession]  
@@ -41,8 +43,11 @@ proc realWatch(route: StreamRoute) =
     let sub = subtitles.get.ask()
     player.watch(media, some sub)    
 
-  else:
-    player.watch(media)
+  if route.session.selectedFormat.isNone:
+    route.session.selectedFormat = block:
+      mediaFormat.title.detectFormat.some
+
+  player.watch(media)
 
 proc selectAndPlay(route: StreamRoute) =
   let
@@ -55,7 +60,7 @@ proc selectAndPlay(route: StreamRoute) =
     route.error("No format available")    
     return
 
-  let mediaFormat = listFormat.ask("Select Format")
+  let mediaFormat = ex.ask(listFormat, route.session.selectedFormat)
   route.data = $$mediaFormat
   route.realWatch()
 
