@@ -1,6 +1,6 @@
 import
   app/stream/main,
-  app/dl/main,
+  app/ani_dl/main,
   app/player/main,
   app/temp/main
 
@@ -21,16 +21,7 @@ let app = [
       option("--ffplay", "ffplay_path", tString, help="ffplay path")
     ], "Streaming Anime"
   ),
-  newSubCommand(
-    "dl", download, @[
-      option("-s", "source", tString, "pahe", sourceHelp),
-      option("--outdir", "outdir", tString, help="Define output directory"),
-      option("-e", "episode", tString, help="Episode to download. (based on index)"),
-      option("-fps", "fps", tInt, 24, "Set Video frame per second"),
-      option("-crf", "crf", tInt, 28, "Set Video CRF (For compression)"),
-      option("--no-sub", "nsub", tBool, false, "Dont include subtitle (Soft-sub only)")
-    ], "Downloading Anime"
-  ),
+  aniDlCommand,
   newSubCommand("player", player, help="Player Test & List", argOpts = @[
       option("--test", "test", tBool, false, "Test Player"),
       option("--list", "list", tBool, false, "List Player"),
