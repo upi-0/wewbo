@@ -65,7 +65,7 @@ proc listLang*: seq[Language] {.gcsafe.} =
 
 proc getLang*(lang: string) : Languages =
   for la in Languages:
-    if lang == $la:
+    if ($la).startsWith(lang) or ($la).endsWith(lang):
       return la
 
 proc detectLang*(sentence: string) : Languages = 

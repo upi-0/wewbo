@@ -1,3 +1,4 @@
+{.deprecated.}
 discard """
   
   Translate soft-sub ke bahasa tujuan.
