@@ -15,7 +15,7 @@ type
     currentY* : int
 
 proc renderBanner(tui: WewboTUI) =
-  let x = (tui.tb.width - 36) div 2 # Find the center cordinate
+  let x = 0 # Find the center cordinate
 
   tui.tb.write(x, 0, fgWhite, styleBright, "                        _           ")
   tui.tb.write(x, 1, fgWhite, styleBright, "                       | |          ")
