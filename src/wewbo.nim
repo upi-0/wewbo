@@ -20,4 +20,29 @@ export
   detectLogMode, newWewboLogger, useWewboLogger, info, text, warn, error, exportLog,
   WewboLogger, WewboLogMode
 
-when isMainModule: import app/wewbo; main()
+when isMainModule:
+  import
+    app/wewbo
+  import
+    malebolgia
+  import
+    nimper,
+    nimper_proxy/[
+      config,
+      server
+    ]
+
+  var
+    m = createMaster()
+    nimperProxyConfig = initDefaultProxyConfig()
+
+  block:
+    nimperProxyConfig.verbose = false
+    nimperProxyConfig.port = 3001
+
+  block:
+    ensureGlobalInit()
+
+    m.awaitAll:
+      m.spawn main()
+      m.spawn runProxyServer(nimperProxyConfig)
