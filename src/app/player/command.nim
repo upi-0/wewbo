@@ -7,16 +7,17 @@ const
   help = "Player Tester"
   entry = player
 
-let  
-  commands = @[
-    option("--test", "test", "Test Player", false),
-    option("--list", "list", "List Player", false),
-    option("-u", "url", "Media URL", "https://huggingface.co/buckets/upi-0/example-video/resolve/nggyu.webm"),
-    option("-p", "player_path", "player path")
-  ]
-  playerCommand* = newSubCommand(
+proc playerCommand*: SubCommand =
+  let
+    commands = @[
+      option("--test", "test", "Test Player", false),
+      option("--list", "list", "List Player", false),
+      option("-u", "url", "Media URL", "https://huggingface.co/buckets/upi-0/example-video/resolve/nggyu.webm"),
+      option("-p", "player_path", "player path")
+    ]
+  result = newSubCommand(
     name = name,
     help = help,
     entry = entry,
-    argOpts = commands)
-  
+    argOpts = commands
+  )
