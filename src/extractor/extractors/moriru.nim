@@ -3,7 +3,8 @@ import ../base
 import
   http/[client, response]
 
-import base64, strutils, json, options
+import 
+  base64, strutils, json, options, utils
 
 import
   zippy
@@ -13,15 +14,12 @@ type
 
 const
   OBF_KEY = "71951034f8fbcf53d89db52ceb3dc22c"
-  SEARCH_TEMPLATE = """{"path":"search","method":"GET","query":{"q":"$#","limit":15,"offset":0,"type":"ANIME","sort":"POPULARITY_DESC"},"body":null,"version":"0.2.0"}"""
-  LIST_EPISODE_TEMPLATE = """{"path":"episodes","method":"GET","query":{"anilistId":"$#"},"body":null,"version":"0.2.0"}"""
-  LIST_FORMAT_TEMPLATE = """{"path":"sources","method":"GET","query":{"episodeId":"$#","provider":"kiwi","category":"sub","anilistId":$#},"body":null,"version":"0.2.0"}"""
-  PROVIDER = "kiwi" # Gua gabisa move on dari animepahe.
+  PROVIDERS = ["sun", "kiwi", "hop"]
 
 proc newMoriru*(ex: var BaseExtractor) =
   ex = MoriruEX(
     name: "mori",
-    host: "miruro.tv"
+    host: "miruro.cx"
   )
 
 proc decode(ex: MoriruEX; text: string): string =
@@ -49,55 +47,75 @@ proc toSlug(title: string): string =
 
 method animes*(ex: MoriruEX; title: string) : seq[AnimeData] =
   let
-    encodedResp = ex.connection.req("/api/secure/pipe?e=" & (SEARCH_TEMPLATE % title).encode).to_readable()
-    decodedResp = ex.decode(encodedResp).parseJson()
-
+    encodedResp = ex.connection.req("/api/search/browse?type=ANIME&limit=8&q=" & title).to_readable()
+    decodedResp = encodedResp.parseJson["data"]
+  
   for anime in decodedResp:
     let
       title = anime["title"]["romaji"].getStr()
-      id = anime["id"].getInt()
-      url = ["/watch", $id].join("/") & "|" & $anime["episodes"].getInt()
+      id = anime["id"].getStr()
+      totalEpisode = anime["episode_count"].num
+      url = ["/info", $id].join("/") & "|" & $totalEpisode
     
     result.add AnimeData(
       title: title,
-      url: $id
+      url: url
     )
 
   # echo decodedResp    
   
-method episodes*(ex: MoriruEX; animeId: string) : seq[EpisodeData] =
+method episodes*(ex: MoriruEX; aur: string) : seq[EpisodeData] =
   let
-    encodedResp = ex.connection.req("/api/secure/pipe?e=" & (LIST_EPISODE_TEMPLATE % animeId).encode).to_readable()
-    decodedResp = ex.decode(encodedResp).parseJson()
+    metadata = aur.split("|")
+    totalEpisode = parseInt metadata[1]
+    animeUrl = metadata[0]
+    location = ex.connection.req(animeUrl).url.replace("/info", "/watch")
 
-  for eps in decodedResp["providers"][PROVIDER]["episodes"]["sub"]:
-    let title = "$# - $#" % [$eps["number"].getInt(), eps["title"].getStr()]
-
+  for eps in 1 .. totalEpisode:
     result.add EpisodeData(
-      title: title,
-      url: eps["id"].getStr() & "|" & animeId 
+      title: "Episode " & $eps,
+      url: $location & "?ep=" & $eps
     )
 
+proc parseFormats(rawResponse, targetProvider: string): Option[JsonNode] =
+  try:
+    let
+      queryStart = join ["provider:", "\"", targetProvider, "\"", ",skipTimes:"]
+      queryEnd = ",thumbnails:"
+      metadata = rawResponse.getBetween(queryStart, queryEnd)[2 .. ^1]
+
+    result = some parseJson jsToJson join ["{", metadata, "}"]
+
+  except Exception:
+    return none(JsonNode)
+
 method formats*(ex: MoriruEX; episodeUrl: string) : seq[ExFormatData] =
-  let
-    encodedResp = ex.connection.req("/api/secure/pipe?e=" & (LIST_FORMAT_TEMPLATE % episodeUrl.split("|")).encode).to_readable()
-    decodedResp = ex.decode(encodedResp).parseJson()
+  let resp = ex.connection.req(episodeUrl).to_readable()
 
-  for stream in decodedResp["streams"]:
-    if not (stream["type"].getStr() == "embed"):
-      let
-        quality = stream["quality"].getStr()
-        fansub = stream["fansub"].getStr()
-        url = stream["url"].getStr()
+  for provider in PROVIDERS:
+    let formats = parseFormats(resp, provider)
+    var data: JsonNode
 
-      result.add ExFormatData(
-        title: [quality, fansub].join(" - "),
-        formatIdentifier: url
-      )
+    if formats.isNone:
+      continue
+
+    data = formats.get
+
+    for server in data["servers"]:
+      for stream in server["streams"]:
+        result.add ExFormatData(
+          title: [provider, server["server"].str, stream["quality"].getStr()].join(" "),
+          addictional: some %*{
+            "headers": server["headers"],
+            "subtitles": data["subtitles"]
+          },
+          format_identifier: stream["url"].str
+        )
 
 method get*(ex: MoriruEX; data: ExFormatData) : MediaFormatData =
   let header = MediaHttpHeader(
-    referer: "https://kwik.cx/"
+    referer: data.addictional.get["headers"].getOrDefault("Referer").getStr("https://miruro.cx/"),
+    origin: data.addictional.get["headers"].getOrDefault("Origin").getStr("https://miruro.cx")
   )
   
   result = MediaFormatData(
@@ -105,3 +123,20 @@ method get*(ex: MoriruEX; data: ExFormatData) : MediaFormatData =
     headers: some header,
     typeExt: extM3u8
   )
+
+when isMainModule:
+  import tui/logger
+  var ex = BaseExtractor()
+
+  block:
+    newMoriru(ex)
+    init(ex, logMode = mEcho)
+
+
+  block:
+    let anime = ex.animes("slow loop")[0]
+    let episode = ex.episodes ex.get anime
+    let formats = ex.formats ex.get episode[0]
+
+    
+    echo formats[6].format_identifier
