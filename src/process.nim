@@ -60,7 +60,7 @@ proc setUp[T: CliApplication](app: T) : T =
 proc start(app: CliApplication, process: Process, message: string, checkup: int = 50): int =  
   let
     isLinux = defined(linux)
-    processLogger = newWewboLogger(message, mode = app.logMode)
+    processLogger = useWewboLogger(message, mode = app.logMode)
 
   var
     outputBuffer: string
@@ -87,8 +87,7 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
     except:
       discard # Jangan males napa lu ah  
 
-  # processLogger.info("ARGS: " & $app.args)
-  app.logginArg(processLogger)
+  processLogger.info("ARGS: " & $app.args)
 
   while true:
     if process.running():
@@ -98,7 +97,6 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
     else:
       stream.handleOutputBuffer(outputBuffer)
       checkup.sleep()
-      processLogger.stop()
 
       return process.peekExitCode()  
 
