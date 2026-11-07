@@ -8,7 +8,7 @@ type
 proc newMpvPlayer*(basePlayer: var Player): void {.gcsafe.} =
   basePlayer = MpvPL(name: "mpv")
 
-proc generateHeader(mpv: MpvPL, ky, val: string) {.inline.} =
+proc generateHeader(mpv: MpvPL, ky, val: string) {.inline, deprecated.} =
   mpv.headerString &= "$#:$#," % [ky, val]   
 
 method specialLine(mpv: MpvPL; text: string): bool =
@@ -18,7 +18,10 @@ method setUserAgent(mpv: MpvPL, val: string) {.inline.} =
   mpv.args.add "--user-agent=" & val
 
 method setReferer(mpv: MpvPL, val: string) {.inline.} =
-  mpv.generateHeader("Referer", val)
+  mpv.args.add "--referrer=" & val
+
+method setOrigin(mpv: MpvPL, val: string) {.inline.} =
+  mpv.args.add "--http-header-fields=Origin:" & val
 
 method setSubtitle(mpv: MpvPL, subtitle: MediaSubtitle) {.inline.} =
   mpv.args.add "--sub-file=" & subtitle.url  
@@ -26,11 +29,12 @@ method setSubtitle(mpv: MpvPL, subtitle: MediaSubtitle) {.inline.} =
 method watch_mp4(mpv: MpvPL, media: MediaFormatData) =
   mpv.args.add "--fullscreen"
   mpv.args.add "--ytdl=no"
-  mpv.args.add "--http-header-fields=" & mpv.headerString
+  # mpv.args.add "--http-header-fields=" & mpv.headerString
   mpv.args.add media.video
  
 method watch_m3u8(mpv: MpvPL, media: MediaFormatData) = 
-  mpv.args.add "--demuxer-lavf-o=protocol_whitelist=[$#]" % mpv.protocolWhitelist & ",http_persistent=0"
+  # mpv.args.add "--demuxer-lavf-o=protocol_whitelist=[$#]" % mpv.protocolWhitelist & ",http_persistent=0"
+  mpv.args.add "--stream-lavf-o-append=http_proxy=http://localhost:3001"
   mpv.args.add "--cache=yes"
   mpv.args.add "--demuxer-readahead-secs=20"
 

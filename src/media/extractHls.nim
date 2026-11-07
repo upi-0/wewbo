@@ -12,7 +12,7 @@ import
   algorithm
 
 import
-  ../http/[client, response],
+  ../http/[client, response, utils],
   ../utils,
   ../tui/logger
 
@@ -52,7 +52,7 @@ proc types(line: string): M3u8XType =
 
 proc parseM3u8Master*(host: string, url: string, headers: MediaHttpHeader): M3u8MasterObject =
   let
-    client = newHttpConnection(host, headers, mode=mSilent)
+    client = newHttpConnection(host, headers, mode=mTui)
     contentUrl = url # Save original URL before overwriting
     url = client.req(url).to_readable()
     lines = url.splitLines().toSeq
@@ -98,6 +98,9 @@ proc parseM3u8Master*(host: string, url: string, headers: MediaHttpHeader): M3u8
       continue
 
   result.headers = headers
+
+proc parseM3u8Master*(url: string; headers: MediaHttpHeader) : M3u8MasterObject =
+  parseM3u8Master(detectHost url, url, headers)
 
 # Helper functions for format sorting and filtering
 func parseResolution(resolution: string): tuple[width: int, height: int] =

@@ -9,14 +9,20 @@ import
   tui/[base, logger],
   os
 
-let app = [
-  streamCommand,
-  anidlCommand,
-  tempCommand,
-  playerCommand,
-]
+# let app = [
+#   # streamCommand,
+#   anidlCommand,
+#   tempCommand,
+#   playerCommand,
+# ]
 
-proc main* = 
+proc main* {.gcsafe.} = 
+  let app = [
+    streamCommand(),
+    anidlCommand(),
+    tempCommand(),
+    playerCommand()
+  ]
   try:
     app.start()
 
@@ -25,8 +31,3 @@ proc main* =
       loga.logger.close()
     
     echo "ERROR: " & getCurrentExceptionMsg()
-
-  if commandLineParams().contains "--capture-error":
-    if not loga.logger.isNil:
-      loga.logger.exportLog()
-      echo "Error log saved to " & getCurrentDir() / "wewbo.txt"

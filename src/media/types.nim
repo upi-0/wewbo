@@ -7,6 +7,7 @@ type
     userAgent*: string
     referer*: string
     cookie*: string
+    origin*: string
 
   MediaSubtitleExt* = enum
     sUnkown, sAss, sVtt
