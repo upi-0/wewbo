@@ -3,6 +3,9 @@ import ../base
 import
   http/[client, response]
 
+import
+  media/extractHls
+
 import 
   base64, strutils, json, options, utils
 
@@ -54,7 +57,7 @@ method animes*(ex: MoriruEX; title: string) : seq[AnimeData] =
     let
       title = anime["title"]["romaji"].getStr()
       id = anime["id"].getStr()
-      totalEpisode = anime["episode_count"].num
+      totalEpisode = anime.getOrDefault("episode_count").getInt(1)
       url = ["/info", $id].join("/") & "|" & $totalEpisode
     
     result.add AnimeData(
@@ -103,14 +106,33 @@ method formats*(ex: MoriruEX; episodeUrl: string) : seq[ExFormatData] =
 
     for server in data["servers"]:
       for stream in server["streams"]:
-        result.add ExFormatData(
-          title: [provider, server["server"].str, stream["quality"].getStr()].join(" "),
-          addictional: some %*{
-            "headers": server["headers"],
-            "subtitles": data["subtitles"]
-          },
-          format_identifier: stream["url"].str
-        )
+        if stream["quality"].kind == JNull:
+          let
+            headers = MediaHttpHeader(
+              referer: server["headers"].getOrDefault("Referer").getStr("https://miruro.cx/"),
+              origin: server["headers"].getOrDefault("Origin").getStr("https://miruro.cx")
+            )
+            jajat: M3u8MasterObject = parseM3u8Master(stream["url"].str, headers)
+
+          for format in jajat.formats:
+            result.add ExFormatData(
+              title: [server["server"].str, format.resolution].join(" "),
+              format_identifier: format.url,
+              addictional: some %*{
+                "headers": server["headers"],
+                "subtitles": data["subtitles"]                
+              }
+            )  
+
+        else:
+          result.add ExFormatData(
+            title: [provider, server["server"].str, stream["quality"].getStr()].join(" "),
+            addictional: some %*{
+              "headers": server["headers"],
+              "subtitles": data["subtitles"]
+            },
+            format_identifier: stream["url"].str
+          )
 
 method get*(ex: MoriruEX; data: ExFormatData) : MediaFormatData =
   let header = MediaHttpHeader(
