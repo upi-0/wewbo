@@ -1,9 +1,6 @@
 # wewbo
 An interactive terminal application for searching and watching anime from various streaming sources. [Install Here](#install)
 
-> [!IMPORTANT]  
-> This project is currently readonly. Development will continue at an unknown time. You can still use it with some sources that are still active. Some sources may no longer be active until they use Cloudflare. Thanks for all your support! Hopefully we can meet again in version 2.
-
 <p align="center">
   <img width="75%" src="https://raw.githubusercontent.com/upi-0/wewbo/refs/heads/main/asset/tuiPreview.png">
 </p>
@@ -15,9 +12,10 @@ Wewbo is a command-line-based application that allows you to search for anime, s
 ## Sources Status
 | Name | Web | Status | Issue |
 |---------|-----------|----| -- |
-| Mori | https://miruro.tv | ✅ | - |
-| Alme | https://allanime.day | ✅ | - |
 | Taku | https://otakudesu.best | ✅ | - |
+| Mori | https://miruro.cx | ⏳ | Implemented in v2 |
+| Kura | https://v20.kuramanime.ing | ⏳ | Implemented in v2 |
+| Kass | https://kaa.lt | ⏳ | Implemented in v2 |
 
 ## How to Use
 
