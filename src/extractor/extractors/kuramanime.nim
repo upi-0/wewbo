@@ -1,23 +1,33 @@
-import xmltree
-import q
-import options
-import json
+import
+  xmltree, q
+import
+  options, json, osproc, temp, os
 import ../base
 import ../../http/[
   client,
   response
 ]
-from strutils import split, parseInt
+import strutils
 
 type
   KuramanimeEX {.final.} = ref object of BaseExtractor
 
+const
+  ParserScript = """
+    const ts = Function.prototype.toString;
+    Function.prototype.toString = function() {
+      return ts.call(this).replace(/[\r\n]+/g, "").replace(/\s*([{};()])\s*/g, "$#");
+    };
+    globalThis.window = {};
+    globalThis.fetch = (u, o) => print(o.headers.Authorization.replace(/^Bearer\s+/i, ""));
+    
+    std.loadScript("$#");
+    
+    window.fetchSecure();  
+  """
+
 proc newKuramanime*(ex: var BaseExtractor) =
-  ex = KuramanimeEX(name: "kura", host: "v8.kuramanime.tel")
-  # Harus dipantau terus nich.
-  ex.http_headers = some(%*{
-    "Authorization" : "Bearer T38Gut4bMdyVMnIy7Wx4cqcsz1vosNWB"
-  })
+  ex = KuramanimeEX(name: "kura", host: "v20.kuramanime.ing")
 
 method animes*(ex: KuramanimeEX, title: string = "") : seq[AnimeData] =
   var
@@ -64,11 +74,24 @@ method episodes*(ex: KuramanimeEX, url: string) : seq[EpisodeData] =
       url: ex.url_g(url, i, tkn)
     )
 
+proc getAuthorizationKey*(ex: KuramanimeEX): string =
+  let
+    leviathanScript = ex.connection.req("/storage/leviathan.js").to_readable()
+    leviathanPath = ex.temp.write(leviathanScript, ".js")
+    command = [getAppDir() / "qjs", "--std", "-e", "'", ParserScript % ["$1", leviathanPath], "'"].join(" ")
+
+  command.execProcess getAppDir() 
+
 method formats*(ex: KuramanimeEX, url: string) : seq[ExFormatData] =
   ex.info(url)
 
   var
-    sources: seq[XmlNode] = ex.main_els(url, "video source")
+    resp = ex.connection.req(
+      url,
+      HttpPost,
+      payload = "authorization=" & ex.getAuthorizationKey()
+    )
+    sources = resp.to_selector().select("video source")
 
   for source in sources :
     result.add ExFormatData(

@@ -72,7 +72,6 @@ proc parseM3u8Master*(host: string, url: string, headers: MediaHttpHeader): M3u8
       result.version = line.getAfter("#EXT-X-VERSION:").parseInt
     of xStreamInf:
       let
-        bandwidth = line.getAttribute("BANDWIDTH=")
         frameRateStr = line.getAttribute("FRAME-RATE=")
         # programIdStr  = line.getAttribute("PROGRAM-ID=")
         uri = lines[idx + 1]
@@ -89,11 +88,12 @@ proc parseM3u8Master*(host: string, url: string, headers: MediaHttpHeader): M3u8
         resolution: line.getAttribute("RESOLUTION="),
         url: resolvedUrl,
         codecs: line.getBetween("CODECS=\"", "\""),
-        bandwidth: if bandwidth.len > 0: bandwidth.parseInt else: 0,
-        frameRate: if frameRateStr.len > 0: frameRateStr.parseFloat else: 0.0,
-        # programId: if programIdStr.len > 0: programIdStr.parseInt else: 0
+        frameRate: block:
+          if frameRateStr.len > 0:
+            try: frameRateStr.parseFloat
+            except: 0.0  
+          else: 0.0
       )
-
     else:
       continue
 

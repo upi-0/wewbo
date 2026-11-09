@@ -76,9 +76,6 @@ proc newHttpConnection*(
     log: log
   )
 
-  result.info("Target: $#" % [$target])
-  result.info("Use gzip: $#" % [if useCompress: "YES" else: "NO"])
-
 proc newHttpConnection*(host: string, header: MediaHttpHeader, mode: WewboLogMode = mTui): HttpConnection =
   var goblok = newJObject()
 
