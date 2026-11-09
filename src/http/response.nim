@@ -2,7 +2,7 @@ import
   pkg/htmlparser,
   q,
   xmltree,
-  httpclient,
+  nimper/client,
   json,
   zippy
 

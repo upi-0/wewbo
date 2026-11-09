@@ -1,127 +1,89 @@
-{.define: ssl.}
-
 import std/[
   strutils,
-  httpclient,
   json,
   uri,
   options,
-  net,
-  os,
+  tables,
+  httpcore
 ]
+
+import nimper
 import
   ../media/types,
   ../tui/logger,
   ./cache
 
 type
-  HttpConnection = ref object of RootObj
+  HttpConnection* = ref object of RootObj
     host*: string
-    client*: HttpClient
+    session*: ImpersonateSession
     headers*: HttpHeaders
     cache*: HttpCache
-    ssl: SslContext
+    target*: ImpersonateTarget
     log*: WewboLogger
-  
+
   HttpLocalData* = tuple[
-    context: Option[SslContext] = none(SslContext),
-    logMode: WewboLogMode = mSilent
+    target: ImpersonateTarget,
+    logMode: WewboLogMode
   ]
 
 let
   cptr = cast[ptr HttpLocalData](alloc0 sizeof HttpLocalData)
 
+proc client*(connection: HttpConnection): ImpersonateSession {.inline.} =
+  connection.session
+
+proc status*(response: Response): string {.inline.} =
+  $response.statusCode & " OK"
+
 proc info(con: HttpConnection, text: string) =
   con.log.info("[$#] " % [con.host] & text)
 
-proc ensureCACert(log: WewboLogger): string =
-  let pemName = getTempDir() / "wewbo-cacert.pem"
+proc newHttpConnection*(
+  host: string,
+  ua: string = "",
+  headers: options.Option[JsonNode] = none(JsonNode),
+  mode: WewboLogMode = mTui,
+  useCompress: bool = true,
+  target: ImpersonateTarget = itFirefox155
+): HttpConnection =
+  cptr.logMode = mode
+  cptr.target = target
 
-  if fileExists(pemName):
-    log.info("[cert] Use existing cert file.")
-    return pemName
-  
-  const url = "https://curl.se/ca/cacert.pem"
-  var
-    context = newContext(verifyMode = CVerifyNone)
-    client = newHttpClient(sslContext = context)
-
-  pemName.writeFile(client.getContent(url))
-  client.close()
-
-  return pemName
-
-proc generataContext(): SslContext =
-  let
-    log = useWewboLogger("SSL Context", mode=cptr.logMode)
-
-  if cptr.context.isNone:
-    log.info("[cert] Generate new context.")
-    result = newContext(caFile = ensureCACert(log))
-    cptr.context = result.some
-
-  else:
-    log.info("Use existing context.")
-    result = cptr.context.get   
-
-proc newHttpConnection*(host: string, ua: string, headers: Option[JsonNode] = none(JsonNode), mode: WewboLogMode = mTui; useCompress: bool = true): HttpConnection =
-  var
-    accept: array[5, string] = [
-      "text/html,application/xhtml+xml,application/xml",
-      "q=0.9,image/avif,image/webp,image/apng,*/*",
-      "q=0.8,application/signed-exchange",
-      "v=b3",
-      "q=0.7"
-    ]
-    base_headers = @[
-      ("Accept-Language", "en-US,en;q=0.9"),
-      ("Sec-Ch-Ua-Mobile", "?0"),
-      ("Sec-Ch-Ua-Platform", "'macOS'"),
-      ("Sec-Fetch-Dest", "document"),
-      ("Sec-Fetch-Mode", "navigate"),
-      ("Sec-Fetch-User", "?1"),
-      ("Upgrade-Insecure-Requests", "1"),
-      ("User-Agent", ua),
-    ]
+  let log = useWewboLogger(host, mode=mode)
+  var httpHeaders = newHttpHeaders()
 
   if headers.isSome:
     for k, v in headers.get.pairs():
-      base_headers.add (k, v.getStr)
+      httpHeaders.add(k, v.getStr)
 
-  if useCompress:
-    base_headers.add ("Accept-Encoding", "gzip")
+  if ua.len > 0:
+    httpHeaders["User-Agent"] = ua
 
-  base_headers.add(("Accept", join(accept, ";")))
-  cptr.logMode = mode
-
-  let
-    context = generataContext()
-    headers = newHttpHeaders(base_headers)
-    client = newHttpClient(
-      headers = headers,
-      sslContext = context
-    )
+  let session = newImpersonateSession(
+    target = target,
+    defaultHeaders = true,
+    headers = @[],
+    maxRedirects = 0
+  )
 
   result = HttpConnection(
     host: host,
-    client: client,
-    headers: headers,
+    session: session,
+    headers: httpHeaders,
     cache: HttpCache(),
-    ssl: context,
-    log: useWewboLogger(host, mode=mode)
+    target: target,
+    log: log
   )
-  
-  result.info("Use gzip: $#" % [if useCompress: "YES" else: "NO"])
-  result.info("HEADERS: $#" % [$base_headers])
 
-proc newHttpConnection*(host: string, header: MediaHttpHeader, mode: WewboLogMode = mTui) : HttpConnection =
+proc newHttpConnection*(host: string, header: MediaHttpHeader, mode: WewboLogMode = mTui): HttpConnection =
   var goblok = newJObject()
-  
-  for ky, val in header.fieldPairs() :
+
+  for ky, val in header.fieldPairs():
     if ky != "" and val != "" and ky != "userAgent":
       goblok.add(ky, val.newJString)
 
-  newHttpConnection(host, header.userAgent, goblok.some, mode)  
+  newHttpConnection(host, header.userAgent, goblok.some, mode)
 
 proc normalize_url*(connection: HttpConnection, url: string): string =
   var
@@ -136,21 +98,24 @@ proc normalize_url*(connection: HttpConnection, url: string): string =
       url.contains(host) or
       url.startsWith(schema & host)
     ):
-    if not url.startsWith "/":
-      real_url = "/" & url
+    if not real_url.startsWith "/":
+      real_url = "/" & real_url
     return schema & host & real_url
 
   return real_url
 
 proc reNewClient(connection: HttpConnection) =
-  var
-    headers = connection.headers
-    client = newHttpClient(
-      headers = headers,
-      sslContext = connection.ssl
-    )
+  if connection.session != nil:
+    try:
+      connection.session.close()
+    except CatchableError:
+      discard
 
-  connection.client = client
+  connection.session = newImpersonateSession(
+    target = connection.target,
+    defaultHeaders = true,
+    headers = @[]
+  )
 
 proc jsonToForm*(j: JsonNode): string {.deprecated: "use http/utils instead".} =
   var parts: seq[string] = @[]
@@ -169,51 +134,26 @@ proc jsonToForm*(j: JsonNode): string {.deprecated: "use http/utils instead".} =
 
   result = parts.join("&")
 
-proc reqq*(client: HttpClient, url: string, mthod: HttpMethod, payload: string): Response =
-  var
-    newHeader: seq[(string, string)]
+proc reqq*(session: ImpersonateSession, url: string, mthod: HttpMethod, payload: string): Response =
+  session.request(
+    url = url,
+    httpMethod = $mthod,
+    body = payload
+  )
 
-  let
-    withPayload = payload != "" and payload != "{}"
-    withHeader = newHeader.len > 0
+proc reqq*(session: ImpersonateSession, url: string, mthod: HttpMethod, payload: string, host: string): Response {.deprecated: "Param 'host' is deprecated".} =
+  reqq(session, url, mthod, payload)
 
-  if withHeader and withPayload:
-    result = client.request(
-      url, mthod,
-      body = payload,
-      headers = newHttpHeaders(newHeader)
-    )
-
-  elif not withHeader and withPayload:
-    result = client.request(
-      url, mthod,
-      body = payload,
-    )
-
-  elif withHeader and not withPayload:
-    result = client.request(
-      url, mthod,
-      headers = newHttpHeaders(newHeader)
-    )         
-
-  elif not withHeader and not withPayload:
-    result = client.request(
-      url, mthod
-    )
-
-proc reqq*(client: HttpClient, url: string, mthod: HttpMethod, payload: string, host: string): Response {.deprecated: "Param 'host' is deprecated".} =
-  reqq(client, url, mthod, payload)
-
-proc extractCookie(cookies: string, cookie: string) : string =
+proc extractCookie(cookies: string, cookie: string): string =
   for line in cookies.split("\n"):
     let cookieValue = line.split(";")[0].strip()
     if cookieValue.len > 0:
-      if cookie.len > 0 :
+      if cookie.len > 0:
         var existing = cookie
         if cookieValue notin existing:
           return existing & "; " & cookieValue
       else:
-        return cookieValue  
+        return cookieValue
 
 proc req*(
   connection: HttpConnection,
@@ -225,31 +165,61 @@ proc req*(
 ): Response {.gcsafe.} =
   var
     content: Response
-    url = connection.normalize_url url
+    url = connection.normalize_url(url)
 
-  proc loadContent() : Response =
+  proc toReqHeaders(hdrs: HttpHeaders): seq[(string, string)] =
+    result = @[]
+    if hdrs != nil:
+      for k, v in hdrs.pairs:
+        result.add((k, v))
+
+  proc loadContent(): Response =
     connection.info(url)
     try:
-      return connection.client.reqq(url, mthod, payload)
-    except ProtocolError:
-      connection.info("Renew Http Client")
+      return connection.session.request(
+        url = url,
+        httpMethod = $mthod,
+        headers = toReqHeaders(connection.headers),
+        body = payload
+      )
+    except CurlImpersonateError as e:
+      connection.info("Connection error: " & e.msg & "; renewing session")
       connection.reNewClient()
-      return connection.client.reqq(url, mthod, payload)
+      return connection.session.request(
+        url = url,
+        httpMethod = $mthod,
+        headers = toReqHeaders(connection.headers),
+        body = payload
+      )
 
-  if useCache and mthod == HttpGet :
-    if connection.cache.has(url) :
+  if useCache and mthod == HttpGet:
+    if connection.cache.has(url):
       content = connection.cache.load(url)
-    else :
+    else:
       content = loadContent()
       connection.cache.store(url, content)
-  else :
+  else:
     content = loadContent()
 
-  if save_cookie and content.headers.hasKey("Set-Cookie") and connection.headers.hasKey("Cookie"):
-    connection.headers["Cookie"] = extractCookie(
-      content.headers["Set-Cookie"],
-      connection.headers["Cookie"]
-    )
+  if save_cookie:
+    let existingCookie = if connection.headers.hasKey("Cookie"): $connection.headers["Cookie"] else: ""
+    if content.cookies.len > 0:
+      var cookieParts: seq[string] = @[]
+      for c in content.cookies:
+        let parts = c.split('\t')
+        if parts.len >= 7:
+          cookieParts.add(parts[5] & "=" & parts[6])
+        else:
+          cookieParts.add(c)
+      if cookieParts.len > 0:
+        connection.headers["Cookie"] = cookieParts.join("; ")
+    elif content.headers.hasKey("Set-Cookie"):
+      var setCookies: seq[string] = @[]
+      if content.headers.table != nil:
+        for val in content.headers.table.getOrDefault("set-cookie", @[]):
+          setCookies.add(val)
+      let scStr = if setCookies.len > 0: setCookies.join("\n") else: $content.headers["Set-Cookie"]
+      connection.headers["Cookie"] = extractCookie(scStr, existingCookie)
 
   return content
 
@@ -283,15 +253,14 @@ proc req*(
   useCache: bool = false,
   payload: JsonNode
 ): Response {.deprecated: "Param 'host' is deprecated".} =
-  req(connection, url, mthod, saveCookie, $payload, useCache)
+  req(connection, url, mthod, save_cookie, $payload, useCache)
 
-proc close*(connection: HttpConnection) =  
-  # Stop
-  connection.log.stop()
-  connection.client.close()
+proc close*(connection: HttpConnection) =
+  if connection.log != nil:
+    connection.log.stop()
+    connection.log = nil
+  if connection.session != nil:
+    connection.session.close()
+    connection.session = nil
 
-  # Set to nill
-  connection.log = nil
-  connection.client = nil
-
-export HttpConnection, Response, HttpMethod
+export HttpConnection, Response, HttpMethod, ImpersonateTarget

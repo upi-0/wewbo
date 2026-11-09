@@ -1,6 +1,5 @@
 import std/[
   base64,
-  httpclient,
   json,
   options,
   os,

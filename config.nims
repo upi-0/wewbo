@@ -3,10 +3,14 @@ discard """
 """
 
 from macros import error
+from os import `/`
 
-switch("outdir", "build")
-switch("define", "useMalloc")
-switch("p", "src")
+block:
+  switch("outdir", "build")
+  switch("define", "useMalloc")
+  switch("define", "ssl")
+  switch("p", "src")
+  switch("threads", "on")
 
 const
   nimVersion = (major: NimMajor, minor: NimMinor, patch: NimPatch)
