@@ -22,8 +22,6 @@ proc ask*[T: Questionable](input: seq[T]; title = "Rijal makan nasi", select = 0
     page = newWewboTUI(title)
     itemsPerPage = terminalHeight() - 10
 
-  localLog.info("[ASK.$#] input len: $#" % [title, $input.len])
-
   var 
     pageEnd, pageStart, contentIdx: int  
     selectedContentIdx = select
@@ -69,7 +67,7 @@ proc ask*[T: Questionable](input: seq[T]; title = "Rijal makan nasi", select = 0
     of Key.Enter:
       block setResult:
         result = input[selectedContentIdx]
-        localLog.info("[ASK.$#] select: $# | title: $#" % [title, $selectedContentIdx, result.title])
+        localLog.info("[$#] $#: $#" % [title, $selectedContentIdx, result.title])
       return result
     of Key.Escape:
       illwillDeinit()
