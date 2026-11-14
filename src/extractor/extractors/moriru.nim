@@ -116,7 +116,7 @@ method formats*(ex: MoriruEX; episodeUrl: string) : seq[ExFormatData] =
 
           for format in jajat.formats:
             result.add ExFormatData(
-              title: [server["server"].str, format.resolution].join(" "),
+              title: [format.resolution, server["server"].str].join(" "),
               format_identifier: format.url,
               addictional: some %*{
                 "headers": server["headers"],
@@ -126,7 +126,7 @@ method formats*(ex: MoriruEX; episodeUrl: string) : seq[ExFormatData] =
 
         else:
           result.add ExFormatData(
-            title: [provider, server["server"].str, stream["quality"].getStr()].join(" "),
+            title: [stream["quality"].getStr(), provider, server["server"].str].join(" "),
             addictional: some %*{
               "headers": server["headers"],
               "subtitles": data["subtitles"]
@@ -146,6 +146,20 @@ method get*(ex: MoriruEX; data: ExFormatData) : MediaFormatData =
     typeExt: extM3u8
   )
 
+method subtitles*(ex: MoriruEX; data: ExFormatData) : Option[seq[MediaSubtitle]] =  
+  if data.addictional.get["subtitles"].len == 0:
+    return none seq[MediaSubtitle]
+
+  var res: seq[MediaSubtitle]
+
+  for sub in data.addictional.get["subtitles"]:
+    res.add MediaSubtitle(
+      url: sub["file"].str,
+      title: sub["label"].str
+    ) 
+    
+  return some res
+
 when isMainModule:
   import tui/logger
   var ex = BaseExtractor()
@@ -154,11 +168,11 @@ when isMainModule:
     newMoriru(ex)
     init(ex, logMode = mEcho)
 
-
   block:
-    let anime = ex.animes("slow loop")[0]
-    let episode = ex.episodes ex.get anime
-    let formats = ex.formats ex.get episode[0]
+    let
+      anime = ex.animes("slow loop")[0]
+      episode = ex.episodes ex.get anime
+      formats = ex.formats ex.get episode[0]
+      subs = ex.subtitles formats[2]
 
-    
-    echo formats[6].format_identifier
+    echo subs.isSome
