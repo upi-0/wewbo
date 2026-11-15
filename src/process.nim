@@ -33,14 +33,6 @@ method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
     let msg = "'$#' Is not exist." % app.name
     raise newException(ValueError, msg)
 
-proc logginArg(app: CliApplication; log = app.log) : void =
-  log.text("APP_NAME: " & app.name, color(fgYellow))
-  log.text("APP_PATH: " & app.path, color(fgYellow))
-  log.text("APP_ARGS:", color(fgYellow))
-  
-  for arg in app.args:
-    log.text("- " & arg, color(fgYellow))  
-
 proc check(app: CliApplication) : bool =
   app.path = app.name.findExe()
   app.path.fileExists()
@@ -60,7 +52,7 @@ proc setUp[T: CliApplication](app: T) : T =
 proc start(app: CliApplication, process: Process, message: string, checkup: int = 50): int =  
   let
     isLinux = defined(linux)
-    processLogger = useWewboLogger(message, mode = app.logMode)
+    processLogger = app.log
 
   var
     outputBuffer: string
@@ -87,8 +79,6 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
     except:
       discard # Jangan males napa lu ah  
 
-  processLogger.info("ARGS: " & $app.args)
-
   while true:
     if process.running():
       stream.handleOutputBuffer(outputBuffer)
@@ -103,6 +93,9 @@ proc start(app: CliApplication, process: Process, message: string, checkup: int 
 proc addArg(app: CliApplication, arg: string) =
   app.args.add arg
 
+template logCommand(app: CliApplication) =
+  app.log.info("[execute] " & app.path & " " & app.args.join(" ").strip.replace("\n", ""))
+
 proc execute(
   app: CliApplication,
   message: string = "Executing external app.",
@@ -110,8 +103,8 @@ proc execute(
   after: Option[AfterExecuteProc] = none(AfterExecuteProc)
 ) : int =
   let process = startProcess(app.path.findExe(), ".", app.args)
-  app.logginArg()
   
+  app.logCommand()
   result = app.start(process, message)
 
   if clearArgs :
@@ -121,9 +114,30 @@ proc execute(
   if after.isSome :
     get(after)()
 
+proc executeOutput*(
+  app: CliApplication,
+  workingDir: string = ".",
+  clearArgs: bool = true,
+  after: Option[AfterExecuteProc] = none(AfterExecuteProc)
+): tuple[output: string, exitCode: int] =
+  let process = startProcess(app.path, workingDir, app.args, options = {poStdErrToStdOut})
+  defer: process.close()
+
+  app.logCommand()  
+
+  result.output = process.outputStream.readAll()
+  result.exitCode = process.waitForExit()
+
+  if clearArgs:
+    app.args = @[]
+
+  if after.isSome:
+    get(after)()
+
 export
   CliApplication,
   check,
   setUp,
   addArg,
-  execute
+  execute,
+  executeOutput
