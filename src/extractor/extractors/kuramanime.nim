@@ -1,8 +1,10 @@
 import
   xmltree, q
 import
-  options, json, osproc, temp, os
-import ../base
+  options, json, temp, os
+import
+  ../base,
+  ../../jsruntime
 import ../../http/[
   client,
   response
@@ -11,6 +13,7 @@ import strutils
 
 type
   KuramanimeEX {.final.} = ref object of BaseExtractor
+    js: JSRuntime
 
 const
   ParserScript = """
@@ -27,7 +30,11 @@ const
   """
 
 proc newKuramanime*(ex: var BaseExtractor) =
-  ex = KuramanimeEX(name: "kura", host: "v20.kuramanime.ing")
+  ex = KuramanimeEX(
+    name: "kura",
+    host: "v20.kuramanime.ing",
+    js: newJSRuntime()
+  )
 
 method animes*(ex: KuramanimeEX, title: string = "") : seq[AnimeData] =
   var
@@ -78,9 +85,11 @@ proc getAuthorizationKey*(ex: KuramanimeEX): string =
   let
     leviathanScript = ex.connection.req("/storage/leviathan.js").to_readable()
     leviathanPath = ex.temp.write(leviathanScript, ".js")
-    command = [getAppDir() / "qjs", "--std", "-e", "'", ParserScript % ["$1", leviathanPath], "'"].join(" ")
 
-  command.execProcess getAppDir() 
+  try:
+    result = ex.js.eval(ParserScript % ["$1", leviathanPath.replace("\\", "/")])
+  finally:
+    removeFile leviathanPath
 
 method formats*(ex: KuramanimeEX, url: string) : seq[ExFormatData] =
   ex.info(url)
