@@ -19,7 +19,7 @@ proc write*(temp: TempManager; content: string; prefix = ""): string =
   result = temp.dir / "wewbo-" & $genOid() & prefix
   result.writeFile(content)
   
-  temp.log.info("Write Temp: " & result)
+  temp.log.info("[temp] write: " & result)
 
 proc newTempManager*(dir = getTempDir(), logMode = mTui): TempManager =
   result = TempManager()
