@@ -40,9 +40,10 @@ proc ask*[T: Questionable](input: seq[T]; title = "Rijal makan nasi", select = 0
       input[i].renderItem(page, i == selectedContentIdx, contentIdx)
       contentIdx.inc
 
-    page.tb.display()
-    contentIdx.reset()
-    pageEnd.reset()
+    block:
+      page.tb.display()
+      contentIdx.reset()
+      pageEnd.reset()
 
   renderItems()
 
