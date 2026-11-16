@@ -31,3 +31,5 @@ proc main* {.gcsafe.} =
       loga.logger.close()
     
     echo "ERROR: " & getCurrentExceptionMsg()
+
+  quit(0)
