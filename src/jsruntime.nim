@@ -42,14 +42,12 @@ proc fetchQjs*(): string {.compileTime.} =
   
   when not defined(release):
     let candidates = [
-      getProjectPath() / "qjs",
-      getProjectPath() / "build" / "qjs",
-      "qjs"
+      "qjs",
+      "build" / "qjs"
     ]
     for candidate in candidates:
-      let found = findExe(candidate)
-      if found.len > 0 and fileExists(found):
-        return readFile(found)
+      if fileExists(candidate):
+        return readFile(candidate)
 
   let
     asset = qjsAssetName()
