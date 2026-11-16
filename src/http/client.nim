@@ -221,7 +221,10 @@ proc req*(
       let scStr = if setCookies.len > 0: setCookies.join("\n") else: $content.headers["Set-Cookie"]
       connection.headers["Cookie"] = extractCookie(scStr, existingCookie)
 
-  return content
+  result = content
+
+  if result.statusCode >= 400:
+    connection.log.warn("[$#] $#: $#" % [connection.host, $result.statusCode, url])
 
 proc req*(
   connection: HttpConnection,

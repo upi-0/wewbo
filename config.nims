@@ -63,6 +63,14 @@ let
   openSslLibFile = openSslLibDir / "libssl.a"
   openCryptoLibFile = openSslLibDir / "libcrypto.a"
   openSslIncludeDir = openSslInstallDir / "include/openssl"
+  # curl-impersonate
+  curlImpVersion = getEnv("CURL_IMPERSONATE_VER", "v2.3.2")
+  curlImpArch = getEnv("CURL_IMPERSONATE_ARCH", when hostCPU == "arm64": "aarch64" else: "x86_64")
+  curlImpArchiveFile = "libcurl-impersonate-" & curlImpVersion & "." & curlImpArch & "-linux-musl.tar.gz"
+  curlImpDownloadLink = "https://github.com/lexiforest/curl-impersonate/releases/download/" & curlImpVersion & "/" & curlImpArchiveFile
+  curlImpInstallDir = (thisDir() / "curl-impersonate/") & curlImpVersion
+  curlImpLibFile = curlImpInstallDir / "libcurl-impersonate.a"
+  curlImpIncludeDir = curlImpInstallDir / "include"
 
 # https://github.com/kaushalmodi/nimy_lisp
 proc dollar[T](s: T): string =
@@ -137,6 +145,17 @@ task installOpenSsl, "Installs OPENSSL using musl-gcc":
     echo openSslLibFile & " already exists"
   setCommand("nop")
 
+task installCurlImpersonate, "Downloads and installs curl-impersonate for musl":
+  if not fileExists(curlImpLibFile):
+    let archivePath = thisDir() / curlImpArchiveFile
+    if not fileExists(archivePath):
+      exec("curl -LO " & curlImpDownloadLink)
+    exec("mkdir -p " & curlImpInstallDir)
+    exec("tar -xzf " & archivePath & " -C " & curlImpInstallDir)
+  else:
+    echo curlImpLibFile & " already exists"
+  setCommand("nop")
+
 # -d:musl
 when defined(musl):
   var
@@ -154,7 +173,8 @@ when defined(musl):
     if not fileExists(pcreLibFile):
       selfExec "installPcre"    # Install PCRE in current dir if pcreLibFile is not found
     switch("passC", "-I" & pcreIncludeDir) # So that pcre.h is found when running the musl task
-    switch("define", "usePcreHeader")
+    switch("passC", "-Wno-incompatible-pointer-types")
+    switch("dynlibOverride", "pcre")
     switch("passL", pcreLibFile)
   # -d:libressl or -d:openssl
   when defined(libressl) or defined(openssl):
@@ -184,10 +204,21 @@ when defined(musl):
     switch("passL", "-lcrypto") # This *has* to come *after* -lssl
     switch("dynlibOverride", "libssl")
     switch("dynlibOverride", "libcrypto")
+  # -d:curlimpersonate
+  when defined(curlimpersonate):
+    if not fileExists(curlImpLibFile):
+      selfExec "installCurlImpersonate"
+    switch("passC", "-I" & curlImpIncludeDir)
+    switch("passC", "-I" & (curlImpIncludeDir / "curl"))
+    switch("define", "curlImpLib=libcurl-impersonate")
+    switch("dynlibOverride", "libcurl-impersonate")
+    switch("dynlibOverride", "libssl")
+    switch("dynlibOverride", "libcrypto")
+    switch("passL", curlImpLibFile)
 
 # nim musl foo.nim
 task musl, "Builds an optimized static binary using musl":
-  ## Usage: nim musl [-d:pcre] [-d:libressl|-d:openssl] <FILE1> <FILE2> ..
+  ## Usage: nim musl [-d:pcre] [-d:libressl|-d:openssl] [-d:curlimpersonate] <FILE1> <FILE2> ..
   var
     switches: seq[string]
     nimFiles: seq[string]
@@ -211,8 +242,10 @@ task musl, "Builds an optimized static binary using musl":
            "  Examples: nim musl FILE.nim",
            "            nim musl FILE1.nim FILE2.nim",
            "            nim musl -d:pcre FILE.nim",
+           "            nim musl -d:curlimpersonate FILE.nim",
            "            nim musl -d:libressl FILE.nim",
-           "            nim musl -d:pcre -d:openssl FILE.nim"].mapconcat("\n"))
+           "            nim musl -d:pcre -d:openssl FILE.nim",
+           "            nim musl -d:pcre -d:curlimpersonate FILE.nim"].mapconcat("\n"))
 
   for f in nimFiles:
     let

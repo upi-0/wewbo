@@ -7,6 +7,7 @@
 openssl*
 libressl*
 pcre*
+curl-impersonate*
 
 # Internal
 nimcache
