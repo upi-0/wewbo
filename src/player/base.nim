@@ -1,5 +1,4 @@
 import options
-import httpclient
 
 import ../process
 import ../media/types
@@ -13,11 +12,13 @@ method watch_m3u8(player: Player, media: MediaFormatData) {.gcsafe, base.} = dis
 method setUserAgent(player: Player, val: string) {.gcsafe, base.} = discard
 method setReferer(player: Player, val: string) {.gcsafe, base.} = discard
 method setCookie(player: Player, val: string) {.gcsafe, base.} = discard
+method setOrigin(player: Player, val: string) {.gcsafe, base.} = discard
 
 method setSubtitle(player: Player, subtitle: MediaSubtitle) {.gcsafe, base.} = discard
 
 proc setHeader(player: Player, header: MediaHttpHeader) =
   for key, val in header.fieldPairs() :
+
     if val != "" :
       case key
       of "userAgent":
@@ -26,6 +27,8 @@ proc setHeader(player: Player, header: MediaHttpHeader) =
         player.setReferer(val)
       of "cookie"  :
         player.setCookie(val)
+      of "origin":
+        player.setOrigin(val)
 
 proc watch*(player: Player, media: MediaFormatData, subtitle: Option[MediaSubtitle]) =
   if media.headers.isSome :

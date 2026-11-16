@@ -1,23 +1,40 @@
-import xmltree
-import q
-import options
-import json
-import ../base
+import
+  xmltree, q
+import
+  options, json, temp, os
+import
+  ../base,
+  ../../jsruntime
 import ../../http/[
   client,
   response
 ]
-from strutils import split, parseInt
+import strutils
 
 type
   KuramanimeEX {.final.} = ref object of BaseExtractor
+    js: JSRuntime
+
+const
+  ParserScript = """
+    const ts = Function.prototype.toString;
+    Function.prototype.toString = function() {
+      return ts.call(this).replace(/[\r\n]+/g, "").replace(/\s*([{};()])\s*/g, "$#");
+    };
+    globalThis.window = {};
+    globalThis.fetch = (u, o) => print(o.headers.Authorization.replace(/^Bearer\s+/i, ""));
+    
+    std.loadScript("$#");
+    
+    window.fetchSecure();  
+  """
 
 proc newKuramanime*(ex: var BaseExtractor) =
-  ex = KuramanimeEX(name: "kura", host: "v8.kuramanime.tel")
-  # Harus dipantau terus nich.
-  ex.http_headers = some(%*{
-    "Authorization" : "Bearer T38Gut4bMdyVMnIy7Wx4cqcsz1vosNWB"
-  })
+  ex = KuramanimeEX(
+    name: "kura",
+    host: "v20.kuramanime.ing",
+    js: newJSRuntime()
+  )
 
 method animes*(ex: KuramanimeEX, title: string = "") : seq[AnimeData] =
   var
@@ -64,11 +81,26 @@ method episodes*(ex: KuramanimeEX, url: string) : seq[EpisodeData] =
       url: ex.url_g(url, i, tkn)
     )
 
+proc getAuthorizationKey*(ex: KuramanimeEX): string =
+  let
+    leviathanScript = ex.connection.req("/storage/leviathan.js").to_readable()
+    leviathanPath = ex.temp.write(leviathanScript, ".js")
+
+  try:
+    result = ex.js.eval(ParserScript % ["$1", leviathanPath.replace("\\", "/")])
+  finally:
+    removeFile leviathanPath
+
 method formats*(ex: KuramanimeEX, url: string) : seq[ExFormatData] =
   ex.info(url)
 
   var
-    sources: seq[XmlNode] = ex.main_els(url, "video source")
+    resp = ex.connection.req(
+      url,
+      HttpPost,
+      payload = "authorization=" & ex.getAuthorizationKey()
+    )
+    sources = resp.to_selector().select("video source")
 
   for source in sources :
     result.add ExFormatData(

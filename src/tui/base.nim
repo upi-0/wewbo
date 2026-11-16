@@ -17,13 +17,12 @@ type
 proc renderBanner(tui: WewboTUI) =
   let x = (tui.tb.width - 36) div 2 # Find the center cordinate
 
-  tui.tb.write(x, 0, fgWhite, styleBright, "                        _           ")
-  tui.tb.write(x, 1, fgWhite, styleBright, "                       | |          ")
-  tui.tb.write(x, 2, fgWhite, styleBright, " __      _______      _| |__   ___  ")
-  tui.tb.write(x, 3, fgWhite, styleBright, " \\ \\ /\\ / / _ \\ \\ /\\ / / '_ \\ / _ \\ ")
-  tui.tb.write(x, 4, fgWhite, styleBright, "  \\ V  V /  __/\\ V  V /| |_) | (_) |")
-  tui.tb.write(x, 5, fgWhite, styleBright, "   \\_/\\_/ \\___| \\_/\\_/ |_.__/ \\___/ ")  
-  tui.tb.write(x, 6, fgWhite, styleBright, "")  
+  tui.tb.write(x, 0, fgWhite, styleBright, "                      ___.           ")
+  tui.tb.write(x, 1, fgWhite, styleBright, "__  _  __ ______  _  _\\_ |__   ____  ")
+  tui.tb.write(x, 2, fgWhite, styleBright, "\\ \\/ \\/ // __ \\ \\/ \\/ /| __ \\ /  _ \\ ")
+  tui.tb.write(x, 3, fgWhite, styleBright, " \\     /\\  ___/\\     / | \\_\\ (  <_> )")
+  tui.tb.write(x, 4, fgWhite, styleBright, "  \\/\\_/  \\___  >\\/\\_/  |___  /\\____/ ")
+  tui.tb.write(x, 5, fgWhite, styleBright, "             \\/            \\/        ")
 
   tui.currentY = 7
 
@@ -43,27 +42,25 @@ proc renderBorder(tui: WewboTUI) =
     fg = tui.borderColor
     lp = (tui.tb.width div 2) - (tl.len div 2)
 
-  tui.crop(tl)
-
   # Top
   tui.tb.write(fg)
   
-  tui.tb.drawHorizLine(1, tui.tb.width - 2, tui.currentY, true)
+  tui.tb.drawHorizLine(1, tui.tb.width - 2, tui.currentY, false)
   tui.tb.write(lp, tui.currentY, fgYellow, tl)
 
-  tui.tb.write(0, tui.currentY, fg, "╔")
-  tui.tb.write(tui.tb.width - 1, tui.currentY, fg, "╗")
+  tui.tb.write(0, tui.currentY, fg, "┌")
+  tui.tb.write(tui.tb.width - 1, tui.currentY, fg, "┐")
   tui.currentY += 1
   tui.maxLen = y2 - tui.currentY
 
   # Right and Left
-  tui.tb.drawVertLine(0, y1, y2, true)
-  tui.tb.drawVertLine(tui.tb.width - 1, y1, y2, true)
+  tui.tb.drawVertLine(0, y1, y2, false)
+  tui.tb.drawVertLine(tui.tb.width - 1, y1, y2, false)
 
   # Bottom
-  tui.tb.drawHorizLine(1, tui.tb.width - 2, y2, true)
-  tui.tb.write(0, y2, fg, "╚")
-  tui.tb.write(tui.tb.width - 1, y2, fg, "╝")
+  tui.tb.drawHorizLine(1, tui.tb.width - 2, y2, false)
+  tui.tb.write(0, y2, fg, "└")
+  tui.tb.write(tui.tb.width - 1, y2, fg, "┘")
 
   # Easter EGG
   tui.writeBottomText()

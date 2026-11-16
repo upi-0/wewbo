@@ -27,15 +27,17 @@ proc realWatch(route: StreamRoute) =
     media = ex.get mediaFormat
     subtitles = ex.subtitles(mediaFormat)
 
-  if subtitles.isSome:
-    let sub = subtitles.get.ask()
-    player.watch(media, some sub)    
-
   if route.session.selectedFormat.isNone:
     route.session.selectedFormat = block:
       mediaFormat.title.detectFormat.some
 
-  player.watch(media)
+  if subtitles.isSome:
+    let sub = subtitles.get.ask()
+    player.watch(media, some sub)
+
+  else:
+    player.watch(media)
+    
   route.defaultActionIdx = 1
 
 proc selectAndPlay(route: StreamRoute) =

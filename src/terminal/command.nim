@@ -9,7 +9,7 @@ import
   json
 
 type
-  SubCommandProc = proc(args: FullArgument) {.nimcall.}
+  SubCommandProc = proc(args: FullArgument) {.nimcall, gcsafe.}
 
   SubCommand = ref object of RootObj
     name*: string
@@ -70,7 +70,7 @@ proc showHelp(subCommnads: openArray[SubCommand]) =
 
   echo ""
 
-proc start(subCommands: openArray[SubCommand]) =
+proc start(subCommands: openArray[SubCommand]) {.gcsafe.} =
   try:
     let args = commandLineParams()
     var nuhun: string

@@ -7,12 +7,14 @@ const
   help = "Ani-DL. Anime Downloader"
   entry = download2
 
-let  
-  commands = @[
-    option("-s", "source", "Select Source", "toyo")
-  ]
-  anidlCommand* = newSubCommand(
+proc anidlCommand*: SubCommand =
+  let
+    commands = @[
+      option("-s", "source", "Select Source", "toyo")
+    ]
+  result = newSubCommand(
     name = name,
     help = help,
     entry = entry,
-    argOpts = commands)
+    argOpts = commands
+  )

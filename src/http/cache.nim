@@ -1,13 +1,12 @@
 import tables
-
-from httpclient import Response
+import nimper/client
 
 type 
   HttpCache* = ref object of RootObj
     all* = initTable[string, Response](10)
 
 proc store*(cache: HttpCache, url: string, response: var Response) =
-  if response.status == "200 OK" :
+  if response.statusCode == 200:
     cache.all[url] = response
 
 proc load*(cache: HttpCache, url: string) : Response =
