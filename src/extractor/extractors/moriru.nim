@@ -4,7 +4,7 @@ import
   http/[client, response]
 
 import
-  media/extractHls
+  media/[extractHls, types]
 
 import 
   base64, strutils, json, options, utils
@@ -153,10 +153,17 @@ method subtitles*(ex: MoriruEX; data: ExFormatData) : Option[seq[MediaSubtitle]]
   var res: seq[MediaSubtitle]
 
   for sub in data.addictional.get["subtitles"]:
+    let fmt = sub.getOrDefault("format").getStr("").toLowerAscii()
+    let subExt =
+      if fmt == "vtt": sVtt
+      elif fmt == "ass" or fmt == "ssa": sAss
+      else: sUnkown
     res.add MediaSubtitle(
       url: sub["file"].str,
-      title: sub["label"].str
-    ) 
+      title: sub["label"].str,
+      lang: sub.getOrDefault("language").getStr(""),
+      ext: subExt
+    )
     
   return some res
 
