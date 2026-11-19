@@ -172,6 +172,12 @@ proc error*(l: WewboLogger, text: string) =
 
   waitFor(Key.Enter)
 
+proc pause*(l: WewboLogger, text: string; styleColor: WewboLogStyle = color(fgGreen)) =
+  l.writeBottomText("[?] Enter to continue")
+  l.render(text, styleColor)
+
+  waitFor(Key.Enter)
+
 proc exportLog*(l: WewboLogger; filename: string = "wewbo.txt") =
   var cleanLogs: seq[string] = @[]
   for log in l.logz:
