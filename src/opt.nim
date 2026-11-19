@@ -1,5 +1,5 @@
 import
-  json, sequtils,
+  json, sequtils, tables,
   tui/[ask, base],
   tui/questionable/[base, option]
 
@@ -12,6 +12,7 @@ from sugar import
 type OptionArgs* = ref object of RootObj
   jsonStructure = newJObject()
   jsonValue = newJObject()
+  defaultIndices = initTable[string, int]()
 
 proc s*(plate: JsonNode): string =
   plate.getStr()
@@ -22,40 +23,59 @@ proc n*(plate: JsonNode; default: int = 0): int =
 proc b*(plate: JsonNode): bool =
   plate.getStr() == "True"
 
-proc putEnum*(opt: OptionArgs; val: openArray[string]; key: string): void {.inline.} =
+proc putEnum*(opt: OptionArgs; val: openArray[string]; key: string; defaultIdx: int = 0): void {.inline.} =
   opt.jsonStructure[key] = %val
+  if val.len > 0:
+    opt.defaultIndices[key] = clamp(defaultIdx, 0, val.len - 1)
+  else:
+    opt.defaultIndices[key] = 0
 
-proc putEnum*[T: Questionable](opt: OptionArgs; inputs: seq[T]; key: string) =
+proc putEnum*[T: Questionable](opt: OptionArgs; inputs: seq[T]; key: string; defaultIdx: int = 0) =
   var res: seq[string]
   
   for input in inputs:
     res.add(input.title)
 
-  opt.putEnum(res, key)   
+  opt.putEnum(res, key, defaultIdx)   
 
 proc put*(opt: OptionArgs; val, key: string): void {.inline.} =
   opt.jsonStructure[key] = %val
 
-proc putBool*(opt: OptionArgs; key: string): void {.inline.} =
-  opt.putEnum(["True", "False"], key)
+proc putBool*(opt: OptionArgs; key: string; default: bool = true): void {.inline.} =
+  opt.putEnum(["True", "False"], key, defaultIdx = if default: 0 else: 1)
 
 proc putRange*(opt: OptionArgs; sn, bp: int; key: string; default: int = sn) : void {.inline.} =
   var s: seq[string]
-  if default != sn:
-    s.add $default
   for i in sn..bp:
     s.add $i
-  opt.jsonStructure[key] = %s
+  let idx = if s.len > 0: clamp(default - sn, 0, s.len - 1) else: 0
+  opt.putEnum(s, key, defaultIdx = idx)
+
+proc applyDefaults*(plate: OptionArgs): void =
+  ## Populate `jsonValue` with default values for any keys not yet set (useful for non-interactive `-y` mode).
+  for (key, val) in plate.jsonStructure.pairs():
+    if plate.jsonValue.hasKey(key):
+      continue
+    case val.kind
+    of JString:
+      plate.jsonValue[key] = val
+    of JArray:
+      let elems = val.getElems()
+      if elems.len > 0:
+        let idx = clamp(plate.defaultIndices.getOrDefault(key, 0), 0, elems.len - 1)
+        plate.jsonValue[key] = elems[idx]
+      else:
+        plate.jsonValue[key] = newJString("")
+    of JInt:
+      plate.jsonValue[key] = newJString($val.getInt())
+    else:
+      discard
 
 proc ask*(plate: OptionArgs; title = "Select Option"): void =
   var cont: seq[OptionValuedQuestionable]
   
   proc isAny(key: string) : bool =
-    try:
-      discard plate.jsonValue[key]
-      true
-    except KeyError:
-      false  
+    plate.jsonValue.hasKey(key)
   
   # To OptionValuedQuestionable
   for (key, val) in plate.jsonStructure.pairs():
@@ -68,9 +88,12 @@ proc ask*(plate: OptionArgs; title = "Select Option"): void =
     of JArray:
       let enumVals = val.getElems().map(x => x.getStr())
       if isAny(key):
-        cont.add optionQ(enumVals, key=key, optIdx = val.getElems().find(plate.jsonValue[key]))
+        let foundIdx = val.getElems().find(plate.jsonValue[key])
+        let idx = if foundIdx >= 0: foundIdx else: plate.defaultIndices.getOrDefault(key, 0)
+        cont.add optionQ(enumVals, key=key, optIdx = clamp(idx, 0, max(0, enumVals.len - 1)))
       else:  
-        cont.add optionQ(enumVals, key=key)
+        let idx = clamp(plate.defaultIndices.getOrDefault(key, 0), 0, max(0, enumVals.len - 1))
+        cont.add optionQ(enumVals, key=key, optIdx = idx)
     of JInt:
       if isAny(key):
         cont.add optionQ($plate.jsonValue[key].getInt(), key=key) 

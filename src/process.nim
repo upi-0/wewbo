@@ -11,13 +11,14 @@ import
   illwill
 
 type
-  AfterExecuteProc = proc() {.gcsafe, nimcall.}
+  AfterExecuteProc* = proc() {.gcsafe, nimcall.}
   SpecialLineProc* = proc(line: string) : bool {.gcsafe, nimcall.}
+  LineCallbackProc* = proc(line: string) {.gcsafe.}
 
-  CliApplication = ref object of RootObj
+  CliApplication* = ref object of RootObj
     name*: string
     args*: seq[string]
-    path: string
+    path*: string
     process {.deprecated.}: Process
     log*: tlog.WewboLogger
     logMode*: WewboLogMode
@@ -28,87 +29,109 @@ type
     erUnknown,
     erCommandNotFound,
 
-method failureHandler(app: CliApplication, context: CliError) {.gcsafe, base.} =
+method failureHandler*(app: CliApplication, context: CliError) {.gcsafe, base.} =
   if context == erCommandNotFound:
     let msg = "'$#' Is not exist." % app.name
     raise newException(ValueError, msg)
 
-proc check(app: CliApplication) : bool =
+proc check*(app: CliApplication) : bool =
+  if app.name.len > 0 and app.name.fileExists():
+    app.path = app.name
+    return true
   app.path = app.name.findExe()
-  app.path.fileExists()
+  app.path.len > 0 and app.path.fileExists()
 
-method specialLine(cli: CliApplication; text: string) : bool {.gcsafe, base.} =
-  text.contains("\r") 
+method specialLine*(cli: CliApplication; text: string) : bool {.gcsafe, base.} =
+  text.contains("\r")
 
-proc setUp[T: CliApplication](app: T) : T =
-  app.log = useWewboLogger(app.name, mode = app.logMode)
+method formatSpecialLine*(cli: CliApplication; text: string) : string {.gcsafe, base.} =
+  text.strip()
+
+proc setUp*[T: CliApplication](app: T) : T =
+  if app.logMode != mSilent:
+    app.log = useWewboLogger(app.name, mode = app.logMode)
 
   if not app.check() :
     app.failureHandler(erCommandNotFound)
     quit(1)
 
-  app    
+  app
 
-proc start(app: CliApplication, process: Process, message: string, checkup: int = 50): int =  
+proc start*(
+  app: CliApplication,
+  process: Process,
+  message: string,
+  checkup: int = 20,
+  onLine: LineCallbackProc = nil
+): int =
   let
-    isLinux = defined(linux)
     processLogger = app.log
+    strm = process.outputStream()
 
   var
-    outputBuffer: string
-    stream = process.peekableOutputStream()
+    lineBuf = newStringOfCap(256)
 
-  proc sendLog(line: string) =    
+  proc dispatchLine(line: string) =
+    if line.len == 0:
+      return
+    if not onLine.isNil:
+      onLine(line)
     if app.specialLine(line):
-      processLogger.setLineBuffer(processLogger.tb.height - 3, " " & line.strip, bg=bgWhite, fg=fgBlack)
-    
-    elif line != "":  
+      let formatted = app.formatSpecialLine(line)
+      if formatted.len > 0 and not processLogger.isNil and app.logMode == mTui:
+        processLogger.setLineBuffer(processLogger.tb.height - 3, " " & formatted, bg=bgWhite, fg=fgBlack)
+    elif not processLogger.isNil:
       processLogger.info(line)
 
-  proc handleOutputBufferWin(strm: Stream; place: var string) =
-    sendLog strm.readLine()
-
-  proc handleOutputBufferLinux(strm: Stream; place: var string) =
-    place = stream.readLine()  
-    place.sendLog()
-
-  proc handleOutputBuffer(strm: Stream; place: var string) =
-    try:
-      if isLinux: strm.handleOutputBufferLinux(place)
-      else: strm.handleOutputBufferWin(place)
-    except:
-      discard # Jangan males napa lu ah  
-
   while true:
-    if process.running():
-      stream.handleOutputBuffer(outputBuffer)
-      checkup.sleep()
-      
-    else:
-      stream.handleOutputBuffer(outputBuffer)
+    try:
+      if strm.atEnd():
+        if not process.running():
+          break
+        checkup.sleep()
+        continue
+
+      let ch = strm.readChar()
+      if ch == '\n' or ch == '\r':
+        if lineBuf.len > 0:
+          dispatchLine(lineBuf)
+          lineBuf.setLen(0)
+      else:
+        lineBuf.add(ch)
+    except IOError, OSError:
+      if not process.running():
+        break
       checkup.sleep()
 
-      return process.peekExitCode()  
+  if lineBuf.len > 0:
+    dispatchLine(lineBuf)
 
-proc addArg(app: CliApplication, arg: string) =
+  return process.waitForExit()
+
+proc addArg*(app: CliApplication, arg: string) =
   app.args.add arg
 
 template logCommand(app: CliApplication) =
-  app.log.info("[execute] " & app.path & " " & app.args.join(" ").strip.replace("\n", ""))
+  if not app.log.isNil:
+    app.log.info("[execute] " & app.path & " " & app.args.join(" ").strip.replace("\n", ""))
 
-proc execute(
+proc execute*(
   app: CliApplication,
   message: string = "Executing external app.",
   clearArgs: bool = true,
-  after: Option[AfterExecuteProc] = none(AfterExecuteProc)
+  after: Option[AfterExecuteProc] = none(AfterExecuteProc),
+  onLine: LineCallbackProc = nil
 ) : int =
-  let process = startProcess(app.path.findExe(), ".", app.args)
-  
+  let exePath = if app.path.len > 0 and app.path.fileExists(): app.path else: app.name.findExe()
+  let process = startProcess(exePath, ".", app.args, options = {poStdErrToStdOut})
+  defer: process.close()
+
   app.logCommand()
-  result = app.start(process, message)
+  result = app.start(process, message, onLine = onLine)
 
   if clearArgs :
-    app.log.info("Clearing previous args")
+    if not app.log.isNil:
+      app.log.info("Clearing previous args")
     app.args = @[]
 
   if after.isSome :

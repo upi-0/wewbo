@@ -57,7 +57,7 @@ when isMainModule:
 
   block:
     nimperProxyConfig.verbose = false
-    nimperProxyConfig.port = 3001
+    nimperProxyConfig.port = 56767
 
   block:
     ensureGlobalInit()

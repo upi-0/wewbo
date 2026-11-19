@@ -34,7 +34,7 @@ method watch_mp4(mpv: MpvPL, media: MediaFormatData) =
  
 method watch_m3u8(mpv: MpvPL, media: MediaFormatData) = 
   # mpv.args.add "--demuxer-lavf-o=protocol_whitelist=[$#]" % mpv.protocolWhitelist & ",http_persistent=0"
-  mpv.args.add "--stream-lavf-o-append=http_proxy=http://localhost:3001"
+  mpv.args.add "--stream-lavf-o-append=http_proxy=http://localhost:56767"
   mpv.args.add "--cache=yes"
   mpv.args.add "--demuxer-readahead-secs=20"
 

@@ -50,10 +50,10 @@ method setColour(item: OptionValuedQuestionable; is_current: bool) : tuple[bg: B
 method renderItem*(item: OptionQuestionable; tui: WewboTUI; is_current: bool; row: int) : void = 
   let
     (bg, fg) = item.setColour(is_current)    
-    itemm = item.options[item.optionIdx]
+    itemm = if item.options.len > 0: item.options[clamp(item.optionIdx, 0, item.options.len - 1)] else: ""
     val = "$# <>" % [itemm, $(item.optionIdx + 1)]
     tit = item.title
-    padd = tui.tb.width - 4 - tit.len - val.len - 3
+    padd = max(1, tui.tb.width - 4 - tit.len - val.len - 3)
     text = tit & repeat(" ", padd) & val
     pref = if is_current: "► " else: "  "
 
@@ -80,11 +80,11 @@ method renderItem*(item: OptionStringQuestionable; tui: WewboTUI; is_current: bo
     (bg, fg) = item.setColour(is_current)    
     val = item.value
     tit = item.title
-    padd = tui.tb.width - 7 - tit.len - val.len - 3
+    padd = max(1, tui.tb.width - 7 - tit.len - val.len - 3)
     text = tit & repeat(" ", padd) & val & " ::"
     pref = if is_current: "► " else: "  "
 
-  tui.setLine(row, pref & text, fg=fg, bg=bg)    
+  tui.setLine(row, pref & text, fg=fg, bg=bg)
 
 method handleExceptionKey*(currentItem: OptionStringQuestionable; tui: WewboTUI; key: Key) : void = 
   case key
