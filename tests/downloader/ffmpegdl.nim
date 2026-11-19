@@ -4,27 +4,42 @@ discard """
 """
 
 import
-  unittest, os
+  unittest, os, osproc
 
 import
   ../../src/media/[downloader, types],
-  ../../src/process
+  ../../src/tui/logger
 
 suite "Downloader Test":
-  setup:
-    const
-      output = "testVideo"        
-      url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+  test "download local video using FFMPEG":
+    let tmpDir = getTempDir() / "wewbo_ffmpegdl_test"
+    createDir(tmpDir)
+    defer: removeDir(tmpDir)
 
-  test "download using FFMPEG":
+    let srcVideo = tmpDir / "sample_src.mp4"
+    let (_, genCode) = execCmdEx(
+      "ffmpeg -y -hide_banner -loglevel error -f lavfi -i color=c=blue:s=160x120:d=1 " &
+      "-f lavfi -i anullsrc=r=44100:cl=mono -t 1 -c:v libx264 -pix_fmt yuv420p -c:a aac " &
+      quoteShell(srcVideo)
+    )
+    require genCode == 0
+
     let
-      downloader = FfmpegDownloader(name: "ffmpeg", outdir: ".", options: (28, 25, false), logMode: mEcho).setup()
+      opts = FfmpegDownloaderOption(
+        subtitleMode: smNone,
+        keepFormat: true,
+        container: cfMp4,
+        overwrite: true,
+        retries: 0
+      )
+      downloader = newFfmpegDownloader(outdir = tmpDir, options = opts, logMode = mSilent)
       media = MediaFormatData(
-        video: url,
-        typeExt: extMp4)
-      exOutput = output & ".mp4"        
+        video: srcVideo,
+        typeExt: extMp4
+      )
+      outName = "testVideo"
+      exOutput = tmpDir / (outName & ".mp4")
 
-    check downloader.download(media, output) < 1
+    check downloader.download(media, outName) == 0
     check fileExists(exOutput)
-    removeFile(exOutput)
-    check not fileExists(exOutput)
+    check getFileSize(exOutput) > 0
