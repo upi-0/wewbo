@@ -63,9 +63,17 @@ proc convert*(val: string, target: AllowedValType) : JsonNode =
       var lVal = val.split(",")
       result = %lVal
     of tBool :
-      result = newJBool(false)
+      let normalized = val.strip().toLowerAscii()
+      if normalized in ["true", "1", "yes", "y", "on"]:
+        result = newJBool(true)
+      elif normalized in ["false", "0", "no", "n", "off"]:
+        result = newJBool(false)
+      else:
+        raise newException(InvalidArgument, "Invalid boolean value: " & val)
+  except InvalidArgument:
+    raise
   except :
-    result = %*{} 
+    raise newException(InvalidArgument, "Invalid value '" & val & "' for type " & $target)
 
 proc add*(fa: FullArgument, flag: string, name: string, val: AllowedValType, default: auto = "") {.gcsafe, deprecated.} =  
   let defa = convert($default, val)
@@ -153,6 +161,8 @@ proc parse*(fa: FullArgument) {.gcsafe.} =
       except IndexDefect :
         if option.valType == tBool :
           realVal = newJBool(true)
+        else:
+          raise newException(InvalidArgument, "Missing value for argument: " & base[0] & " (use " & base[0] & fa.seperator & "<value>)")
 
       fa.flags.add arg.split(fa.seperator)[0]
       fa.parsed[faKey] = realVal
