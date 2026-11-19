@@ -3,4 +3,4 @@ import
   terminal/command
 
 when isMainModule:
-  @[anidlCommand].start()
+  @[anidlCommand()].start()
